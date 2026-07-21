@@ -1,0 +1,40 @@
+{
+    "elements": [
+        {
+            "type": "Label",
+            "caption": "Trage hier das MQTT Base Topic deines Wasserzählers ein, z.B. 'watermeter'."
+        },
+        {
+            "type": "ValidationTextBox",
+            "name": "MQTTBaseTopic",
+            "caption": "MQTT Base Topic"
+        },
+        {
+            "type": "Label",
+            "caption": "Hier stellst du ein, nach wie vielen Minuten ununterbrochenem Wasserfluss ein Leckage-Alarm ausgelöst werden soll. (0 = Deaktiviert)"
+        },
+        {
+            "type": "NumberSpinner",
+            "name": "MaxContinuousFlowMinutes",
+            "caption": "Leckage-Alarm (Minuten)",
+            "minimum": 0,
+            "maximum": 1440,
+            "suffix": " min"
+        },
+        {
+            "type": "Label",
+            "caption": "Wähle hier die Variable aus, die den Bewässerungs-Status anzeigt. So verhindern wir Fehlalarme während du gießt."
+        },
+        {
+            "type": "SelectVariable",
+            "name": "IrrigationVariableID",
+            "caption": "Bewässerungs-Status"
+        }
+    ],
+    "actions": [
+        {
+            "type": "Label",
+            "caption": "Der Leckage-Alarm löst aus, wenn das Wasser ohne Pause länger fließt, als oben eingestellt."
+        }
+    ]
+}
