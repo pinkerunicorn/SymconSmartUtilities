@@ -2,7 +2,7 @@
     "id": "{09A99311-87CD-480B-A7B8-6DC226136CFB}",
     "name": "SmartWaterMonitor",
     "type": 3,
-    "vendor": "SmartHome",
+    "vendor": "Florian Graßinger",
     "author": "Florian Graßinger",
     "aliases": [
         "Water Meter"
