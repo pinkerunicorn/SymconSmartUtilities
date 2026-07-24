@@ -44,8 +44,9 @@
 | Ident | Name | Typ | Beschreibung |
 |:---|:---|:---|:---|
 | AlarmActive | Batterie Alarm | Boolean | Gibt an, ob mindestens eine Batterie leer oder inaktiv ist. |
-| LowBatteryCount | Leere / Inaktive Batterien | Integer | Die Anzahl der aktuell als leer oder inaktiv erkannten Batterien. |
-| MonitoredBatteries | Überwachte Batterien (Liste) | String | Detaillierte Zusamenfassung aller überwachten Batterien mit Status (OK/LEER/INAKTIV/LEER & INAKTIV), aktuellem Wert und Zeitpunkt der letzten Aktualisierung. |
+| LowBatteryCount | Leere Batterien | Integer | Die Anzahl der Batterien mit zu niedrigem Ladestand / Schwellwert-Unterschreitung. |
+| InactiveBatteryCount | Inaktive Batterien | Integer | Die Anzahl der Batterien ohne Aktualisierung im eingestellten Zeitraum. |
+| MonitoredBatteries | Überwachte Batterien (Liste) | String | Detaillierte Zusammenfassung aller überwachten Batterien mit Status (OK/LEER/INAKTIV/LEER & INAKTIV), aktuellem Wert und Zeitpunkt der letzten Aktualisierung. |
 
 ### 6. PHP-Befehlsreferenz
 

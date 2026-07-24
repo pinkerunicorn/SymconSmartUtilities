@@ -21,13 +21,17 @@ class SmartBatteryMonitor extends IPSModuleStrict
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'         => 'Warning'
         ], 1);
-        $this->RegisterVariableInteger('LowBatteryCount', 'Leere / Inaktive Batterien', [
+        $this->RegisterVariableInteger('LowBatteryCount', 'Leere Batterien', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'         => 'Battery'
         ], 2);
+        $this->RegisterVariableInteger('InactiveBatteryCount', 'Inaktive Batterien', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Clock'
+        ], 3);
         $this->RegisterVariableString('MonitoredBatteries', 'Überwachte Batterien (Liste)', [
             'ICON' => 'Battery'
-        ], 3);
+        ], 4);
     }
 
     public function ApplyChanges(): void
@@ -84,8 +88,10 @@ class SmartBatteryMonitor extends IPSModuleStrict
         
         $maxUpdateAgeHours = $this->ReadPropertyInteger('MaxUpdateAgeHours');
 
-        $lowBatteries = [];
+        $problemBatteries = [];
         $allBatteriesLog = [];
+        $lowCount = 0;
+        $inactiveCount = 0;
         $now = time();
         
         foreach ($batteryList as $item) {
@@ -135,6 +141,13 @@ class SmartBatteryMonitor extends IPSModuleStrict
                 }
             }
             
+            if ($isLow) {
+                $lowCount++;
+            }
+            if ($isStale) {
+                $inactiveCount++;
+            }
+
             if ($isLow && $isStale) {
                 $statusText = 'LEER & INAKTIV';
             } elseif ($isLow) {
@@ -165,17 +178,17 @@ class SmartBatteryMonitor extends IPSModuleStrict
             
             if ($isLow || $isStale) {
                 // Store the custom name alongside the varID for SyncLinks
-                $lowBatteries[$varID] = "$name ($statusText)";
+                $problemBatteries[$varID] = "$name ($statusText)";
             }
         }
         
         $this->SetValue('MonitoredBatteries', "Gesamtanzahl: " . count($allBatteriesLog) . "\n\n" . implode("\n", $allBatteriesLog));
         
-        $count = count($lowBatteries);
-        $this->SetValue('AlarmActive', $count > 0);
-        $this->SetValue('LowBatteryCount', $count);
+        $this->SetValue('AlarmActive', ($lowCount > 0 || $inactiveCount > 0));
+        $this->SetValue('LowBatteryCount', $lowCount);
+        $this->SetValue('InactiveBatteryCount', $inactiveCount);
         
-        $this->SyncLinks($lowBatteries);
+        $this->SyncLinks($problemBatteries);
     }
     
     private function SyncLinks(array $lowBatteries): void
