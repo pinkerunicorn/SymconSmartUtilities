@@ -70,10 +70,10 @@ class SmartLawnAI extends IPSModuleStrict {
         IPS_SetIcon($this->GetIDForIdent('WateringActive'), 'Drop');
 
         // Wasserverbrauch-Variablen
-        $this->RegisterVariableFloat('WaterLastSession', '💧 Letzte Beregnung', '', 20);
-        $this->RegisterVariableFloat('WaterToday',       '💧 Heute',           '', 21);
-        $this->RegisterVariableFloat('WaterThisWeek',    '💧 Diese Woche',     '', 22);
-        $this->RegisterVariableFloat('WaterThisMonth',   '💧 Dieser Monat',    '', 23);
+        $this->RegisterVariableFloat('WaterLastSession', 'Letzte Beregnung', '', 20);
+        $this->RegisterVariableFloat('WaterToday',       'Heute',            '', 21);
+        $this->RegisterVariableFloat('WaterThisWeek',    'Diese Woche',      '', 22);
+        $this->RegisterVariableFloat('WaterThisMonth',   'Dieser Monat',     '', 23);
         
         $this->SetVisualizationType(1);
 
@@ -258,10 +258,10 @@ class SmartLawnAI extends IPSModuleStrict {
 
         // Wasserverbrauch Presentations & Archiv
         $waterVars = [
-            'WaterLastSession' => '💧 Letzte Beregnung',
-            'WaterToday'       => '💧 Heute',
-            'WaterThisWeek'    => '💧 Diese Woche',
-            'WaterThisMonth'   => '💧 Dieser Monat',
+            'WaterLastSession' => 'Letzte Beregnung',
+            'WaterToday'       => 'Heute',
+            'WaterThisWeek'    => 'Diese Woche',
+            'WaterThisMonth'   => 'Dieser Monat',
         ];
         foreach ($waterVars as $ident => $name) {
             $vid = $this->GetIDForIdent($ident);
