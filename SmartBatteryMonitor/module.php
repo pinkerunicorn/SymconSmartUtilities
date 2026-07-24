@@ -13,6 +13,7 @@ class SmartBatteryMonitor extends IPSModuleStrict
         
         $this->RegisterPropertyString('BatteryVariables', '[]');
         $this->RegisterPropertyString('CheckTime', '{"hour":18,"minute":0,"second":0}');
+        $this->RegisterPropertyInteger('MaxUpdateAgeHours', 24);
         
         $this->RegisterTimer('DailyCheckTimer', 0, 'SBM_CheckBatteries($_IPS[\'TARGET\']);');
         
@@ -20,7 +21,7 @@ class SmartBatteryMonitor extends IPSModuleStrict
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'         => 'Warning'
         ], 1);
-        $this->RegisterVariableInteger('LowBatteryCount', 'Leere Batterien', [
+        $this->RegisterVariableInteger('LowBatteryCount', 'Leere / Inaktive Batterien', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'         => 'Battery'
         ], 2);
@@ -81,8 +82,11 @@ class SmartBatteryMonitor extends IPSModuleStrict
             $batteryList = [];
         }
         
+        $maxUpdateAgeHours = $this->ReadPropertyInteger('MaxUpdateAgeHours');
+
         $lowBatteries = [];
         $allBatteriesLog = [];
+        $now = time();
         
         foreach ($batteryList as $item) {
             $varID = (int)($item['VariableID'] ?? 0);
@@ -121,16 +125,47 @@ class SmartBatteryMonitor extends IPSModuleStrict
             } elseif ($type === 'Percent' || $type === 'Voltage') {
                 if ($val !== false && $val <= $threshold) $isLow = true;
             }
+
+            // Check variable last update timestamp
+            $lastUpdate = $var['VariableUpdated'] ?? 0;
+            $isStale = false;
+            if ($maxUpdateAgeHours > 0) {
+                if ($lastUpdate === 0 || ($now - $lastUpdate) > ($maxUpdateAgeHours * 3600)) {
+                    $isStale = true;
+                }
+            }
             
-            $statusText = $isLow ? 'LEER' : 'OK';
+            if ($isLow && $isStale) {
+                $statusText = 'LEER & INAKTIV';
+            } elseif ($isLow) {
+                $statusText = 'LEER';
+            } elseif ($isStale) {
+                $statusText = 'INAKTIV';
+            } else {
+                $statusText = 'OK';
+            }
+
+            if ($lastUpdate > 0) {
+                $diff = $now - $lastUpdate;
+                if ($diff < 3600) {
+                    $timeAgo = round($diff / 60) . ' Min.';
+                } elseif ($diff < 86400) {
+                    $timeAgo = round($diff / 3600, 1) . ' Std.';
+                } else {
+                    $timeAgo = round($diff / 86400, 1) . ' Tage';
+                }
+            } else {
+                $timeAgo = 'nie';
+            }
+            
             $realValue = GetValueFormatted($varID);
             if ($realValue === false) $realValue = 'Fehler';
             
-            $allBatteriesLog[] = "[$statusText] $name ($realValue)";
+            $allBatteriesLog[] = "[$statusText] $name ($realValue, Update: $timeAgo)";
             
-            if ($isLow) {
+            if ($isLow || $isStale) {
                 // Store the custom name alongside the varID for SyncLinks
-                $lowBatteries[$varID] = $name;
+                $lowBatteries[$varID] = "$name ($statusText)";
             }
         }
         
@@ -382,12 +417,19 @@ class SmartBatteryMonitor extends IPSModuleStrict
         },
         {
             "type": "Label",
-            "caption": "Hier stellst du 'Tägliche Ausführungszeit' ein."
+            "caption": "Hier stellst du 'Tägliche Ausführungszeit' und Überwachung der Aktualisierung ein."
         },
         {
             "type": "SelectTime",
             "name": "CheckTime",
             "caption": "Tägliche Ausführungszeit"
+        },
+        {
+            "type": "NumberSpinner",
+            "name": "MaxUpdateAgeHours",
+            "caption": "Maximales Alter der Aktualisierung (in Stunden, 0 = Deaktivieren)",
+            "digits": 0,
+            "minimum": 0
         }
     ],
     "actions": [

@@ -36,15 +36,16 @@
   * *Variable*: Die ID der Batterie-Variable.
   * *Typ*: Bestimmt die Auswertelogik (Automatisch, BoolTrue, BoolFalse, Prozent, Spannung).
   * *Schwellwert*: Legt fest, ab welchem Wert (bei Prozent/Spannung) ein Alarm ausgelöst wird.
+* **Maximales Alter der Aktualisierung (MaxUpdateAgeHours)**: Maximale erlaubte Inaktivitätszeit in Stunden (Standard: 24h, 0 = Deaktiviert). Wurde eine Batterie-Variable in diesem Zeitraum nicht von Ihrem Sensor aktualisiert, schlägt das Modul Alarm (Status: INAKTIV).
 * **Tägliche Ausführungszeit (CheckTime)**: Uhrzeit, zu der die tägliche Batterieprüfung stattfinden soll.
 
 ### 5. Statusvariablen und Profile
 
 | Ident | Name | Typ | Beschreibung |
 |:---|:---|:---|:---|
-| AlarmActive | Batterie Alarm | Boolean | Gibt an, ob mindestens eine Batterie leer ist. |
-| LowBatteryCount | Leere Batterien | Integer | Die Anzahl der aktuell als leer erkannten Batterien. |
-| MonitoredBatteries | Überwachte Batterien (Liste) | String | Eine Textzusammenfassung aller überwachten Batterien inklusive aktuellem Status (OK/LEER). |
+| AlarmActive | Batterie Alarm | Boolean | Gibt an, ob mindestens eine Batterie leer oder inaktiv ist. |
+| LowBatteryCount | Leere / Inaktive Batterien | Integer | Die Anzahl der aktuell als leer oder inaktiv erkannten Batterien. |
+| MonitoredBatteries | Überwachte Batterien (Liste) | String | Detaillierte Zusamenfassung aller überwachten Batterien mit Status (OK/LEER/INAKTIV/LEER & INAKTIV), aktuellem Wert und Zeitpunkt der letzten Aktualisierung. |
 
 ### 6. PHP-Befehlsreferenz
 
