@@ -183,6 +183,122 @@ class SmartBatteryMonitor extends IPSModuleStrict
         return true;
     }
 
+    public function AutoDiscoverBatteries(): array
+    {
+        $currentJson = $this->ReadPropertyString('BatteryVariables');
+        $currentList = json_decode($currentJson, true);
+        if (!is_array($currentList)) {
+            $currentList = [];
+        }
+
+        $existingIDs = array_column($currentList, 'VariableID');
+        $addedCount = 0;
+
+        $allVarIDs = IPS_GetVariableList();
+        foreach ($allVarIDs as $varID) {
+            // Ignore variables belonging to this instance itself
+            $checkID = $varID;
+            $isChild = false;
+            while ($checkID > 0 && IPS_ObjectExists($checkID)) {
+                $parent = IPS_GetParent($checkID);
+                if ($parent === $this->InstanceID) {
+                    $isChild = true;
+                    break;
+                }
+                $checkID = $parent;
+            }
+            if ($isChild || $varID === $this->InstanceID) {
+                continue;
+            }
+
+            // Ignore already added variables
+            if (in_array($varID, $existingIDs, true)) {
+                continue;
+            }
+
+            $var = @IPS_GetVariable($varID);
+            if (!is_array($var)) {
+                continue;
+            }
+
+            $obj = @IPS_GetObject($varID);
+            if (!is_array($obj)) {
+                continue;
+            }
+
+            $profile = $var['VariableCustomProfile'] !== '' ? $var['VariableCustomProfile'] : $var['VariableProfile'];
+            $ident = strtolower($obj['ObjectIdent']);
+            $name = strtolower($obj['ObjectName']);
+            $profileLower = strtolower($profile);
+
+            $isBattery = false;
+            $type = 'Auto';
+            $threshold = 15.0;
+
+            // Check profile
+            if (strpos($profileLower, 'battery') !== false || strpos($profileLower, 'batterie') !== false) {
+                $isBattery = true;
+                if ($profile === '~Battery.100') {
+                    $type = 'Percent';
+                    $threshold = 15.0;
+                } elseif ($profile === '~Battery.Reversed') {
+                    $type = 'BoolFalse';
+                } elseif ($profile === '~Battery') {
+                    $type = 'BoolTrue';
+                }
+            }
+            // Check Ident & Name
+            elseif (
+                strpos($ident, 'low_bat') !== false ||
+                strpos($ident, 'lowbat') !== false ||
+                strpos($ident, 'battery') !== false ||
+                strpos($ident, 'batterie') !== false ||
+                strpos($name, 'batterie') !== false ||
+                strpos($name, 'battery') !== false ||
+                strpos($name, 'low bat') !== false
+            ) {
+                $isBattery = true;
+                if ($var['VariableType'] === 0) { // Boolean
+                    if (strpos($ident, 'reversed') !== false || strpos($name, 'reversed') !== false) {
+                        $type = 'BoolFalse';
+                    } else {
+                        $type = 'BoolTrue';
+                    }
+                } elseif ($var['VariableType'] === 1 || $var['VariableType'] === 2) { // Integer or Float
+                    $type = 'Percent';
+                    $threshold = 15.0;
+                }
+            }
+
+            if ($isBattery) {
+                $parentID = $obj['ParentID'];
+                $parentName = ($parentID > 0 && IPS_ObjectExists($parentID)) ? IPS_GetName($parentID) : '';
+                $displayName = (!empty($parentName) && $parentName !== '0')
+                    ? $parentName . ' (' . $obj['ObjectName'] . ')'
+                    : $obj['ObjectName'];
+
+                $currentList[] = [
+                    'Name'        => $displayName,
+                    'VariableID'  => $varID,
+                    'Type'        => $type,
+                    'Threshold'   => $threshold
+                ];
+                $existingIDs[] = $varID;
+                $addedCount++;
+            }
+        }
+
+        if ($addedCount > 0) {
+            $newListJson = json_encode($currentList);
+            IPS_SetProperty($this->InstanceID, 'BatteryVariables', $newListJson);
+            $this->UpdateFormField('BatteryVariables', 'values', json_encode($currentList));
+            @IPS_ApplyChanges($this->InstanceID);
+            $this->LogMessage("AutoDiscover: $addedCount neue Batterie-Variablen hinzugefügt.", 0);
+        }
+
+        return $currentList;
+    }
+
     public function GetConfigurationForm(): string
     {
         return <<<'EOT'
@@ -275,6 +391,11 @@ class SmartBatteryMonitor extends IPSModuleStrict
         }
     ],
     "actions": [
+        {
+            "type": "Button",
+            "caption": "Batterien automatisch suchen",
+            "onClick": "SBM_AutoDiscoverBatteries($id);"
+        },
         {
             "type": "Button",
             "caption": "Jetzt prüfen",

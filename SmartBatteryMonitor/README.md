@@ -49,6 +49,11 @@
 ### 6. PHP-Befehlsreferenz
 
 ```php
+SBM_AutoDiscoverBatteries(int $InstanceID);
+```
+Durchsucht das gesamte IP-Symcon-System nach Batterie-Variablen (anhand von Profilen wie `~Battery`, `~Battery.100`, `~Battery.Reversed` oder Namens-/Ident-Mustern) und fügt neu gefundene Variablen automatisch der Liste der überwachten Batterien hinzu.
+
+```php
 SBM_CheckBatteries(int $InstanceID);
 ```
 Startet manuell die Prüfung aller konfigurierten Batterie-Variablen, aktualisiert die Statusvariablen und legt bei Bedarf Links zu leeren Batterien an.
