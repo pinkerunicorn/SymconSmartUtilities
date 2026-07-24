@@ -63,8 +63,17 @@ class SmartLawnAI extends IPSModuleStrict {
         $this->RegisterPropertyString('ForbiddenStartTime', '10:00');
         $this->RegisterPropertyString('ForbiddenEndTime', '17:00');
         
+        // Water Monitor
+        $this->RegisterPropertyInteger('WaterMonitorInstanceID', 0);
+        
         $this->RegisterVariableBoolean('WateringActive', 'Bewässerung läuft', '', 4);
         IPS_SetIcon($this->GetIDForIdent('WateringActive'), 'Drop');
+
+        // Wasserverbrauch-Variablen
+        $this->RegisterVariableFloat('WaterLastSession', '💧 Letzte Beregnung', '', 20);
+        $this->RegisterVariableFloat('WaterToday',       '💧 Heute',           '', 21);
+        $this->RegisterVariableFloat('WaterThisWeek',    '💧 Diese Woche',     '', 22);
+        $this->RegisterVariableFloat('WaterThisMonth',   '💧 Dieser Monat',    '', 23);
         
         $this->SetVisualizationType(1);
 
@@ -137,6 +146,10 @@ class SmartLawnAI extends IPSModuleStrict {
         $ref_GardenaSplitterID = $this->ReadPropertyInteger('GardenaSplitterID');
         if ($ref_GardenaSplitterID > 1 && @IPS_ObjectExists($ref_GardenaSplitterID)) {
             $this->RegisterReference($ref_GardenaSplitterID);
+        }
+        $ref_WaterMonitorID = $this->ReadPropertyInteger('WaterMonitorInstanceID');
+        if ($ref_WaterMonitorID > 1 && @IPS_ObjectExists($ref_WaterMonitorID)) {
+            $this->RegisterReference($ref_WaterMonitorID);
         }
         $list_Zones = json_decode($this->ReadPropertyString('Zones'), true);
         if (is_array($list_Zones)) {
@@ -241,6 +254,25 @@ class SmartLawnAI extends IPSModuleStrict {
 
         if (GetValue($this->GetIDForIdent('IrrigationLog')) === '') {
             $this->SetValue('IrrigationLog', "Noch keine Bewässerungsvorgänge protokolliert.");
+        }
+
+        // Wasserverbrauch Presentations & Archiv
+        $waterVars = [
+            'WaterLastSession' => '💧 Letzte Beregnung',
+            'WaterToday'       => '💧 Heute',
+            'WaterThisWeek'    => '💧 Diese Woche',
+            'WaterThisMonth'   => '💧 Dieser Monat',
+        ];
+        foreach ($waterVars as $ident => $name) {
+            $vid = $this->GetIDForIdent($ident);
+            IPS_SetName($vid, $name);
+            IPS_SetIcon($vid, 'Drops');
+            IPS_SetVariableCustomPresentation($vid, [
+                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                'SUFFIX'       => ' L',
+                'ICON'         => 'Drops'
+            ]);
+            $this->EnableArchive($vid);
         }
 
         $zonesJson = $this->ReadPropertyString('Zones');
@@ -521,6 +553,16 @@ class SmartLawnAI extends IPSModuleStrict {
                             "caption": "Sperrzeit Ende"
                         }
                     ]
+                },
+                {
+                    "type": "Label",
+                    "caption": "Water Monitor Integration"
+                },
+                {
+                    "type": "SelectInstance",
+                    "name": "WaterMonitorInstanceID",
+                    "caption": "SmartWaterMonitor Instanz (für Wasserverbrauchsmessung)",
+                    "moduleID": "{09A99311-87CD-480B-A7B8-6DC226136CFB}"
                 },
         {
             "type": "Label",

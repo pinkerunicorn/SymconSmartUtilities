@@ -261,6 +261,12 @@ trait SmartLawnAI_Logic {
                                 $this->SetValue('StartFeuchte_'. $zone['SensorID'], $aktuelleFeuchte);
                                 $this->SetValue('Dauer_'. $zone['SensorID'], $berechneteMinuten);
                                 
+                                // Wasserzähler-Startwert merken
+                                $wLiterID = $this->GetWaterMeterLiterVarID();
+                                if ($wLiterID > 0) {
+                                    $this->SetBuffer('WaterMeterStart_' . $zone['SensorID'], (string)GetValue($wLiterID));
+                                }
+                                
                                 $einVentilIstAktiv = true; 
                             } else {
                                 $this->LogAndDebug('Sequencer', 'Fehler: Start-Befehl für Zone '. $zone['SensorID'] . 'konnte nicht gesendet werden.', 0);
@@ -359,7 +365,23 @@ trait SmartLawnAI_Logic {
                             $zoneName = isset($zone['GroupName']) && !empty($zone['GroupName']) ? $zone['GroupName'] : 'Zone '. $zone['SensorID'];
                             $this->AddLogEvent("{$zoneName}: Sprinklerwechsel", "Nächster Sprinkler: {$nextSprinklerName}", '#2196F3');
                         } else {
-                            // Alle Sprinkler der Zone fertig
+                            // Alle Sprinkler der Zone fertig → Wasserverbrauch berechnen
+                            $wLiterID = $this->GetWaterMeterLiterVarID();
+                            if ($wLiterID > 0) {
+                                $wStart = (float)$this->GetBuffer('WaterMeterStart_' . $zone['SensorID']);
+                                $wEnd   = (float)GetValue($wLiterID);
+                                $consumed = round($wEnd - $wStart, 1);
+                                if ($consumed > 0) {
+                                    $this->SetValue('WaterLastSession', $consumed);
+                                    $this->SetValue('WaterToday',     round($this->GetValue('WaterToday')     + $consumed, 1));
+                                    $this->SetValue('WaterThisWeek',  round($this->GetValue('WaterThisWeek')  + $consumed, 1));
+                                    $this->SetValue('WaterThisMonth', round($this->GetValue('WaterThisMonth') + $consumed, 1));
+                                    $zoneName = isset($zone['GroupName']) && !empty($zone['GroupName']) ? $zone['GroupName'] : 'Zone '. $zone['SensorID'];
+                                    $this->AddLogEvent("{$zoneName}: Verbrauch", "{$consumed} L verbraucht", '#03A9F4');
+                                    $this->SLog('INFO', 'Wasserverbrauch Zone ' . ($zone['GroupName'] ?? $zone['SensorID']), $consumed . ' L');
+                                }
+                            }
+
                             $this->SetValue('CurrentSprinklerIndex_'. $zone['SensorID'],  0); // Reset
                             $this->SetValue('Status_'. $zone['SensorID'], 'WAITING_FOR_RESULT');
                             $this->SetValue('SickerpauseStart_'. $zone['SensorID'], time());
@@ -393,7 +415,18 @@ trait SmartLawnAI_Logic {
             }
         }
 
-        // 5. Heartbeat für die Webfront Anzeige (Zeitstempel aktualisieren)
+        // 5. Wasserzähler Tages-/Wochen-/Monatsreset
+        $today = date('Y-m-d');
+        $week  = date('oW');   // ISO Jahr + Wochennummer
+        $month = date('Y-m');
+        $wBuf  = json_decode($this->GetBuffer('WaterResetDates'), true);
+        if (!is_array($wBuf)) $wBuf = [];
+        if (($wBuf['day']   ?? '') !== $today) { $this->SetValue('WaterToday',     0.0); $wBuf['day']   = $today; }
+        if (($wBuf['week']  ?? '') !== $week)  { $this->SetValue('WaterThisWeek',  0.0); $wBuf['week']  = $week; }
+        if (($wBuf['month'] ?? '') !== $month) { $this->SetValue('WaterThisMonth', 0.0); $wBuf['month'] = $month; }
+        $this->SetBuffer('WaterResetDates', json_encode($wBuf));
+
+        // 6. Heartbeat für die Webfront Anzeige (Zeitstempel aktualisieren)
         $automaticActive = GetValue($this->GetIDForIdent('AutomaticActive'));
         if ($automaticActive) {
             $currentStatus = GetValue($this->GetIDForIdent('SummaryStatus'));
