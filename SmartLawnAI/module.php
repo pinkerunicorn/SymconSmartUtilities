@@ -6,12 +6,14 @@ require_once __DIR__ . '/libs/Trait_Weather.php';
 require_once __DIR__ . '/libs/Trait_AI.php';
 require_once __DIR__ . '/libs/Trait_Logic.php';
 require_once __DIR__ . '/libs/Trait_Helpers.php';
+require_once __DIR__ . '/../libs/Trait_HouseModeAware.php';
 
 class SmartLawnAI extends IPSModuleStrict {
     use SmartLawnAI_Weather;
     use SmartLawnAI_AI;
     use SmartLawnAI_Logic;
     use SmartLawnAI_Helpers;
+    use HouseModeAware_Trait;
 
     public function Create(): void {
         parent::Create();
@@ -84,6 +86,8 @@ class SmartLawnAI extends IPSModuleStrict {
         
         // NEU: Gemini Retry Timer
         $this->RegisterTimer('GeminiRetryTimer', 0, 'SLAI_ProcessGeminiRetry($_IPS[\'TARGET\']);');
+        
+        $this->RegisterHouseModeAwareness();
     }
 
     public function RequestAction(string $Ident, $Value): void {
@@ -144,6 +148,7 @@ class SmartLawnAI extends IPSModuleStrict {
             }
         }
         // ---------------------------------
+        $this->ApplyHouseModeSubscription();
 
         // Timer aktivieren (alle 1.000 ms = 1 Sekunde)
         // Status/Trigger Variablen
@@ -296,6 +301,8 @@ class SmartLawnAI extends IPSModuleStrict {
     }
 
     public function MessageSink(int $TimeStamp, int $SenderID, int $Message, array $Data): void {
+        if ($this->HandleHouseModeMessage($SenderID, $Message, $Data)) return;
+
         if ($Message == IM_CHANGESTATUS) {
             $splitterID = $this->ReadPropertyInteger('GardenaSplitterID');
             if ($SenderID == $splitterID) {
@@ -333,7 +340,7 @@ class SmartLawnAI extends IPSModuleStrict {
         }
     }
     
-    public function SetHouseMode(int $mode): void {
+    private function OnHouseModeChanged(int $mode, bool $isAbsence, bool $isSleep): void {
         // 0=Anwesenheit, 1=Abwesenheit, 2=Urlaub, 3=Party, 4=Heimkino, 5=Schlafen, 6=Putzen
         if ($mode == 3) {
             // Party Mode -> Turn off automatic watering to prevent wet guests
@@ -518,6 +525,11 @@ class SmartLawnAI extends IPSModuleStrict {
         {
             "type": "Label",
             "caption": "Hier definierst du deine Beregnungskreise. Gib jedem Kreis einen Namen und verknüpfe ihn mit einem passenden Bodenfeuchtesensor."
+        },
+        {
+            "type": "SelectVariable",
+            "name": "HouseModeVariableID",
+            "caption": "Haus-Modus Variable"
         },
         {
             "type": "List",
