@@ -19,30 +19,54 @@ class SmartLawnAI extends IPSModuleStrict {
         parent::Create();
 
         // Globale Defaults (jetzt als Variablen statt Properties)
-        $this->RegisterVariableFloat('DefaultZielFeuchte', '🎯 Bewässerungs-Ziel-Feuchte', '', 10);
-        IPS_SetIcon($this->GetIDForIdent('DefaultZielFeuchte'), 'Drop');
-        $this->RegisterVariableFloat('DefaultStartSchwellwert', 'Bewässerungs-Trigger-Feuchte', '', 11);
-        IPS_SetIcon($this->GetIDForIdent('DefaultStartSchwellwert'), 'Information');
-        $this->RegisterVariableInteger('SickerpauseMinuten', '⏳ Sickerpause', '', 12);
-        IPS_SetIcon($this->GetIDForIdent('SickerpauseMinuten'), 'Drop');
-        $this->RegisterVariableInteger('GlobalMaxDuration', '⏱ Maximale Bewässerungsdauer', '', 13);
-        IPS_SetIcon($this->GetIDForIdent('GlobalMaxDuration'), 'Clock');
+        $this->RegisterVariableFloat('DefaultZielFeuchte', '🎯 Bewässerungs-Ziel-Feuchte', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
+            'ICON' => 'Drops',
+            'SUFFIX' => '%',
+            'MIN' => 0,
+            'MAX' => 100,
+            'STEP' => 5
+        ], 10);
+        $this->RegisterVariableFloat('DefaultStartSchwellwert', 'Bewässerungs-Trigger-Feuchte', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
+            'ICON' => 'Drops',
+            'SUFFIX' => '%',
+            'MIN' => 0,
+            'MAX' => 100,
+            'STEP' => 5
+        ], 11);
+        $this->RegisterVariableInteger('SickerpauseMinuten', '⏳ Sickerpause', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
+            'ICON' => 'Clock',
+            'SUFFIX' => 'Min',
+            'MIN' => 0,
+            'MAX' => 180,
+            'STEP' => 5
+        ], 12);
+        $this->RegisterVariableInteger('GlobalMaxDuration', '⏱ Maximale Bewässerungsdauer', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
+            'ICON' => 'Clock',
+            'SUFFIX' => 'Min',
+            'MIN' => 0,
+            'MAX' => 180,
+            'STEP' => 5
+        ], 13);
 
         // Summenstatus Variable (fürs Webfront)
-        $this->RegisterVariableString('SummaryStatus', '🤖 Aktueller Status', '', 0);
-        IPS_SetIcon($this->GetIDForIdent('SummaryStatus'), 'Information');
-        $this->RegisterVariableString('VestaboardMessage', 'Vestaboard Nachricht', '', 1);
-        IPS_SetIcon($this->GetIDForIdent('VestaboardMessage'), 'Information');
-        $this->RegisterVariableString('LastGeminiResponse', '🧠 Letzte KI-Antwort', '', 2);
-        IPS_SetIcon($this->GetIDForIdent('LastGeminiResponse'), 'Information');
-        $this->RegisterVariableString('IrrigationLog', '📝 Bewässerungs-Log', '', 3);
-        IPS_SetIcon($this->GetIDForIdent('IrrigationLog'), 'Drop');
+        $this->RegisterVariableString('SummaryStatus', '🤖 Aktueller Status', ['ICON' => 'Information'], 0);
+        $this->RegisterVariableString('VestaboardMessage', 'Vestaboard Nachricht', ['ICON' => 'Information'], 1);
+        $this->RegisterVariableString('LastGeminiResponse', '🧠 Letzte KI-Antwort', ['ICON' => 'Information'], 2);
+        $this->RegisterVariableString('IrrigationLog', '📝 Bewässerungs-Log', ['ICON' => 'Drop'], 3);
 
         // Status/Trigger Variablen
-        $this->RegisterVariableBoolean('AutomaticActive', '⚙ Automatik aktiv', '', 0);
-        IPS_SetIcon($this->GetIDForIdent('AutomaticActive'), 'Information');
-        $this->RegisterVariableBoolean('ForceStart', '▶ Manuell Starten', '', 0);
-        IPS_SetIcon($this->GetIDForIdent('ForceStart'), 'Information');
+        $this->RegisterVariableBoolean('AutomaticActive', '⚙ Automatik aktiv', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
+            'ICON' => 'Gear'
+        ], 0);
+        $this->RegisterVariableBoolean('ForceStart', '▶ Manuell Starten', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
+            'ICON' => 'Play'
+        ], 0);
 
 
         // Gemini AI Konfiguration: API-Key und Modell werden jetzt zentral
@@ -66,22 +90,35 @@ class SmartLawnAI extends IPSModuleStrict {
         // Water Monitor
         $this->RegisterPropertyInteger('WaterMonitorInstanceID', 0);
         
-        $this->RegisterVariableBoolean('WateringActive', 'Bewässerung läuft', '', 4);
-        IPS_SetIcon($this->GetIDForIdent('WateringActive'), 'Drop');
+        $this->RegisterVariableBoolean('WateringActive', 'Bewässerung läuft', ['ICON' => 'Drop'], 4);
 
         // Wasserverbrauch-Variablen
-        $this->RegisterVariableFloat('WaterLastSession', 'Letzte Beregnung', '', 20);
-        $this->RegisterVariableFloat('WaterToday',       'Heute',            '', 21);
-        $this->RegisterVariableFloat('WaterThisWeek',    'Diese Woche',      '', 22);
-        $this->RegisterVariableFloat('WaterThisMonth',   'Dieser Monat',     '', 23);
+        $this->RegisterVariableFloat('WaterLastSession', 'Letzte Beregnung', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'SUFFIX' => ' L',
+            'ICON' => 'Drops'
+        ], 20);
+        $this->RegisterVariableFloat('WaterToday',       'Heute',            [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'SUFFIX' => ' L',
+            'ICON' => 'Drops'
+        ], 21);
+        $this->RegisterVariableFloat('WaterThisWeek',    'Diese Woche',      [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'SUFFIX' => ' L',
+            'ICON' => 'Drops'
+        ], 22);
+        $this->RegisterVariableFloat('WaterThisMonth',   'Dieser Monat',     [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'SUFFIX' => ' L',
+            'ICON' => 'Drops'
+        ], 23);
         
         $this->SetVisualizationType(1);
 
         // Wetter/Regen
-        $this->RegisterVariableFloat('ForecastRainToday', '🌧 Regen Heute', '', 5);
-        IPS_SetIcon($this->GetIDForIdent('ForecastRainToday'), 'Cloud');
-        $this->RegisterVariableFloat('ForecastRainTomorrow', '🌧 Regen Morgen', '', 6);
-        IPS_SetIcon($this->GetIDForIdent('ForecastRainTomorrow'), 'Cloud');
+        $this->RegisterVariableFloat('ForecastRainToday', '🌧 Regen Heute', ['ICON' => 'Cloud'], 5);
+        $this->RegisterVariableFloat('ForecastRainTomorrow', '🌧 Regen Morgen', ['ICON' => 'Cloud'], 6);
 
         // Zonen (Hardware)
         $this->RegisterPropertyString('Zones', '[]');
@@ -99,7 +136,7 @@ class SmartLawnAI extends IPSModuleStrict {
         $this->RegisterHouseModeAwareness();
     }
 
-    public function RequestAction(string $Ident, $Value): void {
+    public function RequestAction(string $Ident, mixed $Value): void {
         if (in_array($Ident, ['DefaultZielFeuchte', 'DefaultStartSchwellwert', 'SickerpauseMinuten', 'GlobalMaxDuration'])) {
             $this->SetValue($Ident, $Value);
         } else if ($Ident === 'AutomaticActive') {
@@ -167,10 +204,6 @@ class SmartLawnAI extends IPSModuleStrict {
         // Status/Trigger Variablen
         $this->EnableAction('AutomaticActive');
          
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('AutomaticActive'), [
-            'PRESENTATION'=> VARIABLE_PRESENTATION_SWITCH,
-            'ICON'=> 'Gear'
-        ]);
         if (!IPS_VariableExists($this->GetIDForIdent('AutomaticActive')) || (GetValue($this->GetIDForIdent('AutomaticActive')) === false && IPS_GetVariable($this->GetIDForIdent('AutomaticActive'))['VariableUpdated'] == 0)) {
             $this->SetValue('AutomaticActive', true); // Default true
             $this->SetTimerInterval('LawnAITimer', 1000);
@@ -186,63 +219,27 @@ class SmartLawnAI extends IPSModuleStrict {
         }
         $this->EnableAction('ForceStart');
          
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('ForceStart'), [
-            'PRESENTATION'=> VARIABLE_PRESENTATION_SWITCH,
-            'ICON'=> 'Play'
-        ]);
         $this->SetValue('ForceStart', false);
 
         $this->EnableAction('DefaultZielFeuchte');
         IPS_SetName($this->GetIDForIdent('DefaultZielFeuchte'), 'Bewässerungs-Ziel-Feuchte');
         if (GetValue($this->GetIDForIdent('DefaultZielFeuchte')) == 0) { $this->SetValue('DefaultZielFeuchte', 55.0); }
          
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('DefaultZielFeuchte'), [
-            'PRESENTATION'=> VARIABLE_PRESENTATION_SLIDER,
-            'ICON'=> 'Drops',
-            'SUFFIX'=> '%',
-            'MIN'=> 0,
-            'MAX'=> 100,
-            'STEP'=> 5
-        ]);
         
         $this->EnableAction('DefaultStartSchwellwert');
         IPS_SetName($this->GetIDForIdent('DefaultStartSchwellwert'), 'Bewässerungs-Trigger-Feuchte');
         if (GetValue($this->GetIDForIdent('DefaultStartSchwellwert')) == 0) { $this->SetValue('DefaultStartSchwellwert', 20.0); }
          
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('DefaultStartSchwellwert'), [
-            'PRESENTATION'=> VARIABLE_PRESENTATION_SLIDER,
-            'ICON'=> 'Drops',
-            'SUFFIX'=> '%',
-            'MIN'=> 0,
-            'MAX'=> 100,
-            'STEP'=> 5
-        ]);
         
         $this->EnableAction('SickerpauseMinuten');
         IPS_SetName($this->GetIDForIdent('SickerpauseMinuten'), 'Sickerpause');
         if (GetValue($this->GetIDForIdent('SickerpauseMinuten')) == 0) { $this->SetValue('SickerpauseMinuten', 15); }
          
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('SickerpauseMinuten'), [
-            'PRESENTATION'=> VARIABLE_PRESENTATION_SLIDER,
-            'ICON'=> 'Clock',
-            'SUFFIX'=> 'Min',
-            'MIN'=> 0,
-            'MAX'=> 180,
-            'STEP'=> 5
-        ]);
         
         $this->EnableAction('GlobalMaxDuration');
         IPS_SetName($this->GetIDForIdent('GlobalMaxDuration'), 'Maximale Bewässerungsdauer');
         if (GetValue($this->GetIDForIdent('GlobalMaxDuration')) == 0) { $this->SetValue('GlobalMaxDuration', 30); }
          
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('GlobalMaxDuration'), [
-            'PRESENTATION'=> VARIABLE_PRESENTATION_SLIDER,
-            'ICON'=> 'Clock',
-            'SUFFIX'=> 'Min',
-            'MIN'=> 0,
-            'MAX'=> 180,
-            'STEP'=> 5
-        ]);
 
         $splitterID = $this->ReadPropertyInteger('GardenaSplitterID');
         if ($splitterID > 0 && IPS_InstanceExists($splitterID)) {
@@ -256,23 +253,15 @@ class SmartLawnAI extends IPSModuleStrict {
             $this->SetValue('IrrigationLog', "Noch keine Bewässerungsvorgänge protokolliert.");
         }
 
-        // Wasserverbrauch Presentations & Archiv
+        // Wasserverbrauch Archiv
         $waterVars = [
-            'WaterLastSession' => 'Letzte Beregnung',
-            'WaterToday'       => 'Heute',
-            'WaterThisWeek'    => 'Diese Woche',
-            'WaterThisMonth'   => 'Dieser Monat',
+            'WaterLastSession',
+            'WaterToday',
+            'WaterThisWeek',
+            'WaterThisMonth',
         ];
-        foreach ($waterVars as $ident => $name) {
-            $vid = $this->GetIDForIdent($ident);
-            IPS_SetName($vid, $name);
-            IPS_SetIcon($vid, 'Drops');
-            IPS_SetVariableCustomPresentation($vid, [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'SUFFIX'       => ' L',
-                'ICON'         => 'Drops'
-            ]);
-            $this->EnableArchive($vid);
+        foreach ($waterVars as $ident) {
+            $this->EnableArchive($this->GetIDForIdent($ident));
         }
 
         $zonesJson = $this->ReadPropertyString('Zones');
@@ -283,40 +272,27 @@ class SmartLawnAI extends IPSModuleStrict {
                 $hasSoak = isset($zone['SoakEnabled']) ? $zone['SoakEnabled'] : false;
                 $name = isset($zone['GroupName']) && !empty($zone['GroupName']) ? $zone['GroupName'] : 'Zone '. $sid;
                 if (!empty($name)) {
-                    $this->RegisterVariableString('Status_'. $sid, 'ℹ Status '. $name, '', 1);
-                    IPS_SetIcon($this->GetIDForIdent('Status_'. $sid), 'Information');
-                    $this->RegisterVariableFloat('Effizienz_'. $sid, '📈 Effizienz '. $name, '', 2);
-                    IPS_SetIcon($this->GetIDForIdent('Effizienz_'. $sid), 'Gauge');
-                    $this->EnableArchive($this->GetIDForIdent('Effizienz_'. $sid));
-                     
-                    IPS_SetVariableCustomPresentation($this->GetIDForIdent('Effizienz_'. $sid), [
+                    $this->RegisterVariableString('Status_'. $sid, 'ℹ Status '. $name, ['ICON' => 'Information'], 1);
+                    $this->RegisterVariableFloat('Effizienz_'. $sid, '📈 Effizienz '. $name, [
                         'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
                         'ICON'=> 'Graph',
                         'SUFFIX'=> 'x'
-                    ]);
-                    $this->RegisterVariableFloat('StartFeuchte_'. $sid, 'StartFeuchte '. $name, '', 3);
-                    IPS_SetIcon($this->GetIDForIdent('StartFeuchte_'. $sid), 'Drop');
-                     
-                    IPS_SetVariableCustomPresentation($this->GetIDForIdent('StartFeuchte_'. $sid), [
+                    ], 2);
+                    $this->EnableArchive($this->GetIDForIdent('Effizienz_'. $sid));
+                    $this->RegisterVariableFloat('StartFeuchte_'. $sid, 'StartFeuchte '. $name, [
                         'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
                         'ICON'=> 'Drops',
                         'SUFFIX'=> '%'
-                    ]);
-                    $this->RegisterVariableFloat('Dauer_'. $sid, '⏱ Dauer '. $name, '', 4);
-                    IPS_SetIcon($this->GetIDForIdent('Dauer_'. $sid), 'Clock');
-                     
-                    IPS_SetVariableCustomPresentation($this->GetIDForIdent('Dauer_'. $sid), [
+                    ], 3);
+                    $this->RegisterVariableFloat('Dauer_'. $sid, '⏱ Dauer '. $name, [
                         'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
                         'ICON'=> 'Clock',
                         'SUFFIX'=> 'Min'
-                    ]);
-                    $this->RegisterVariableInteger('SickerpauseStart_'. $sid, '⏳ SickerpauseStart '. $name, '', 5);
-                    IPS_SetIcon($this->GetIDForIdent('SickerpauseStart_'. $sid), 'Drop');
-                    $this->RegisterVariableInteger('WateringStart_'. $sid, '🚿 Bewässerungsstart '. $name, '', 6);
-                    IPS_SetIcon($this->GetIDForIdent('WateringStart_'. $sid), 'Drop');
+                    ], 4);
+                    $this->RegisterVariableInteger('SickerpauseStart_'. $sid, '⏳ SickerpauseStart '. $name, ['ICON' => 'Drop'], 5);
+                    $this->RegisterVariableInteger('WateringStart_'. $sid, '🚿 Bewässerungsstart '. $name, ['ICON' => 'Drop'], 6);
                     
-                    $this->RegisterVariableInteger('CurrentSprinklerIndex_'. $sid, '🔢 Aktueller Sprinkler Index '. $name, '', 7);
-                    IPS_SetIcon($this->GetIDForIdent('CurrentSprinklerIndex_'. $sid), 'Drop');
+                    $this->RegisterVariableInteger('CurrentSprinklerIndex_'. $sid, '🔢 Aktueller Sprinkler Index '. $name, ['ICON' => 'Drop'], 7);
                     IPS_SetHidden($this->GetIDForIdent('CurrentSprinklerIndex_'. $sid), true);
 
                     // IP-Symcon benennt bestehende Variablen nicht automatisch um, daher erzwingen wir es hier

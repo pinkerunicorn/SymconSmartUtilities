@@ -15,47 +15,36 @@ class AWMMuenchen extends IPSModuleStrict
         $this->RegisterTimer('UpdateTimer', 0, 'AWM_UpdateCalendar($_IPS[\'TARGET\']);');
 
         // Heutige Abholungen
-        $this->RegisterVariableBoolean('RestmuellHeute', 'Restmülltonne (Heute)', '', 10);
-        IPS_SetIcon($this->GetIDForIdent('RestmuellHeute'), 'Clock');
-        $this->RegisterVariableBoolean('PapierHeute', 'Papiertonne (Heute)', '', 20);
-        IPS_SetIcon($this->GetIDForIdent('PapierHeute'), 'Clock');
-        $this->RegisterVariableBoolean('BioHeute', 'Biotonne (Heute)', '', 30);
-        IPS_SetIcon($this->GetIDForIdent('BioHeute'), 'Clock');
+        $this->RegisterVariableBoolean('RestmuellHeute', 'Restmülltonne (Heute)', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
+            'ICON' => 'Clock'
+        ], 10);
+        $this->RegisterVariableBoolean('PapierHeute', 'Papiertonne (Heute)', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
+            'ICON' => 'Clock'
+        ], 20);
+        $this->RegisterVariableBoolean('BioHeute', 'Biotonne (Heute)', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
+            'ICON' => 'Clock'
+        ], 30);
 
         // Heute: Einzelne String-Variable als Zusammenfassung
-        $this->RegisterVariableString('Heute', 'Heute', '', 4);
-        IPS_SetIcon($this->GetIDForIdent('Heute'), 'Clock');
-        $this->RegisterVariableString('VestaboardMessage', 'Vestaboard Nachricht', '', 5);
-        IPS_SetIcon($this->GetIDForIdent('VestaboardMessage'), 'Clock');
+        $this->RegisterVariableString('Heute', 'Heute', ['ICON' => 'Clock'], 4);
+        $this->RegisterVariableString('VestaboardMessage', 'Vestaboard Nachricht', ['ICON' => 'Clock'], 5);
 
         // Variablen für Wochentage (Wochenübersicht)
-        $this->RegisterVariableString('Montag', 'Montag', '', 11);
-        IPS_SetIcon($this->GetIDForIdent('Montag'), 'Clock');
-        $this->RegisterVariableString('Dienstag', 'Dienstag', '', 12);
-        IPS_SetIcon($this->GetIDForIdent('Dienstag'), 'Clock');
-        $this->RegisterVariableString('Mittwoch', 'Mittwoch', '', 13);
-        IPS_SetIcon($this->GetIDForIdent('Mittwoch'), 'Clock');
-        $this->RegisterVariableString('Donnerstag', 'Donnerstag', '', 14);
-        IPS_SetIcon($this->GetIDForIdent('Donnerstag'), 'Clock');
-        $this->RegisterVariableString('Freitag', 'Freitag', '', 15);
-        IPS_SetIcon($this->GetIDForIdent('Freitag'), 'Clock');
-        $this->RegisterVariableString('Samstag', 'Samstag', '', 16);
-        IPS_SetIcon($this->GetIDForIdent('Samstag'), 'Clock');
+        $this->RegisterVariableString('Montag', 'Montag', ['ICON' => 'Clock'], 11);
+        $this->RegisterVariableString('Dienstag', 'Dienstag', ['ICON' => 'Clock'], 12);
+        $this->RegisterVariableString('Mittwoch', 'Mittwoch', ['ICON' => 'Clock'], 13);
+        $this->RegisterVariableString('Donnerstag', 'Donnerstag', ['ICON' => 'Clock'], 14);
+        $this->RegisterVariableString('Freitag', 'Freitag', ['ICON' => 'Clock'], 15);
+        $this->RegisterVariableString('Samstag', 'Samstag', ['ICON' => 'Clock'], 16);
     }
 
     public function ApplyChanges(): void{
         parent::ApplyChanges();
 
-        
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('RestmuellHeute'), [
-            'PRESENTATION'=> VARIABLE_PRESENTATION_SWITCH
-        ]);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('PapierHeute'), [
-            'PRESENTATION'=> VARIABLE_PRESENTATION_SWITCH
-        ]);
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('BioHeute'), [
-            'PRESENTATION'=> VARIABLE_PRESENTATION_SWITCH
-        ]);
+
 
         $interval = $this->ReadPropertyInteger('UpdateInterval');
         if ($interval > 0) {

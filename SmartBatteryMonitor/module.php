@@ -16,12 +16,17 @@ class SmartBatteryMonitor extends IPSModuleStrict
         
         $this->RegisterTimer('DailyCheckTimer', 0, 'SBM_CheckBatteries($_IPS[\'TARGET\']);');
         
-        $this->RegisterVariableBoolean('AlarmActive', 'Batterie Alarm', '', 1);
-        IPS_SetIcon($this->GetIDForIdent('AlarmActive'), 'Warning');
-        $this->RegisterVariableInteger('LowBatteryCount', 'Leere Batterien', '', 2);
-        IPS_SetIcon($this->GetIDForIdent('LowBatteryCount'), 'Battery');
-        $this->RegisterVariableString('MonitoredBatteries', 'Überwachte Batterien (Liste)', '', 3);
-        IPS_SetIcon($this->GetIDForIdent('MonitoredBatteries'), 'Battery');
+        $this->RegisterVariableBoolean('AlarmActive', 'Batterie Alarm', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Warning'
+        ], 1);
+        $this->RegisterVariableInteger('LowBatteryCount', 'Leere Batterien', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Battery'
+        ], 2);
+        $this->RegisterVariableString('MonitoredBatteries', 'Überwachte Batterien (Liste)', [
+            'ICON' => 'Battery'
+        ], 3);
     }
 
     public function ApplyChanges(): void
@@ -42,23 +47,7 @@ class SmartBatteryMonitor extends IPSModuleStrict
         }
         // ---------------------------------
         
-        if (@IPS_GetObjectIDByIdent('AlarmActive', $this->InstanceID) !== false) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('AlarmActive'), [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'Warning'
-            ]);
-        }
-        
-        if (@IPS_GetObjectIDByIdent('LowBatteryCount', $this->InstanceID) !== false) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('LowBatteryCount'), [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'Battery'
-            ]);
-        }
-        
-        if (@IPS_GetObjectIDByIdent('MonitoredBatteries', $this->InstanceID) !== false) {
-            IPS_SetIcon($this->GetIDForIdent('MonitoredBatteries'), 'Battery');
-        }
+        // Custom Presentations now handled inline in Create()
         
         $this->SetDailyTimer();
         $this->CheckBatteries();

@@ -17,18 +17,33 @@ class SmartWaterMonitor extends IPSModuleStrict
         $this->SetReceiveDataFilter('.*' . preg_quote($this->ReadPropertyString('MQTTBaseTopic')) . '.*');
 
         // Variables
-        $this->RegisterVariableBoolean('Online', 'Online');
-        IPS_SetIcon($this->GetIDForIdent('Online'), 'Network');
-        $this->RegisterVariableBoolean('LeakAlarm', 'Leckage-Alarm');
-        IPS_SetIcon($this->GetIDForIdent('LeakAlarm'), 'Warning');
-        $this->RegisterVariableBoolean('WaterRunning', 'Wasser fließt');
-        IPS_SetIcon($this->GetIDForIdent('WaterRunning'), 'Drop');
-        $this->RegisterVariableFloat('FlowRate', 'Aktueller Durchfluss');
-        IPS_SetIcon($this->GetIDForIdent('FlowRate'), 'Speedo');
-        $this->RegisterVariableFloat('TotalConsumption', 'Gesamtverbrauch');
-        IPS_SetIcon($this->GetIDForIdent('TotalConsumption'), 'Drops');
-        $this->RegisterVariableFloat('TotalConsumptionLiter', 'Gesamtverbrauch (Liter)');
-        IPS_SetIcon($this->GetIDForIdent('TotalConsumptionLiter'), 'Drops');
+        $this->RegisterVariableBoolean('Online', 'Online', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Network'
+        ]);
+        $this->RegisterVariableBoolean('LeakAlarm', 'Leckage-Alarm', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Alert'
+        ]);
+        $this->RegisterVariableBoolean('WaterRunning', 'Wasser fließt', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Drop'
+        ]);
+        $this->RegisterVariableFloat('FlowRate', 'Aktueller Durchfluss', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'SUFFIX'       => ' l/min',
+            'ICON'         => 'Speedo'
+        ]);
+        $this->RegisterVariableFloat('TotalConsumption', 'Gesamtverbrauch', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'SUFFIX'       => ' m³',
+            'ICON'         => 'Drops'
+        ]);
+        $this->RegisterVariableFloat('TotalConsumptionLiter', 'Gesamtverbrauch (Liter)', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'SUFFIX'       => ' l',
+            'ICON'         => 'Drops'
+        ]);
 
         // Variables are read-only
 
@@ -48,8 +63,6 @@ class SmartWaterMonitor extends IPSModuleStrict
         $topic = $this->ReadPropertyString('MQTTBaseTopic');
         $this->SetReceiveDataFilter('.*' . preg_quote($topic) . '.*');
 
-        // Apply Custom Presentations
-        $this->UpdatePresentations();
     }
 
     public function LeakTimerTriggered(): void
@@ -69,53 +82,7 @@ class SmartWaterMonitor extends IPSModuleStrict
         IPS_LogMessage('SmartWaterMonitor', 'LECKAGE-ALARM! Wasser fließt ununterbrochen seit ' . $this->ReadPropertyInteger('MaxContinuousFlowMinutes') . ' Minuten!');
     }
 
-    private function UpdatePresentations(): void
-    {
-        if (@IPS_GetObjectIDByIdent('Online', $this->InstanceID) !== false) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('Online'), [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'Network'
-            ]);
-        }
 
-        if (@IPS_GetObjectIDByIdent('LeakAlarm', $this->InstanceID) !== false) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('LeakAlarm'), [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'Alert'
-            ]);
-        }
-
-        if (@IPS_GetObjectIDByIdent('WaterRunning', $this->InstanceID) !== false) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('WaterRunning'), [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'Drop'
-            ]);
-        }
-
-        if (@IPS_GetObjectIDByIdent('FlowRate', $this->InstanceID) !== false) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('FlowRate'), [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'SUFFIX'       => ' l/min',
-                'ICON'         => 'Speedo'
-            ]);
-        }
-
-        if (@IPS_GetObjectIDByIdent('TotalConsumption', $this->InstanceID) !== false) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('TotalConsumption'), [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'SUFFIX'       => ' m³',
-                'ICON'         => 'Drops'
-            ]);
-        }
-
-        if (@IPS_GetObjectIDByIdent('TotalConsumptionLiter', $this->InstanceID) !== false) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('TotalConsumptionLiter'), [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'SUFFIX'       => ' l',
-                'ICON'         => 'Drops'
-            ]);
-        }
-    }
 
     public function ReceiveData(string $JSONString): string
     {
@@ -205,7 +172,7 @@ class SmartWaterMonitor extends IPSModuleStrict
         }
     }
 
-    public function RequestAction(string $Ident, $Value): void
+    public function RequestAction(string $Ident, mixed $Value): void
     {
         switch ($Ident) {
             case 'TotalConsumption':
