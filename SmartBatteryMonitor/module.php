@@ -226,8 +226,12 @@ class SmartBatteryMonitor extends IPSModuleStrict
 
     protected function LogMessage(string $Message, int $Type): bool
     {
-        $this->SLog('INFO', $Message);
-        IPS_LogMessage('SmartVillaKunterbunt', 'SmartBatteryMonitor: ' . $Message);
+        $level = match(true) {
+            $Type >= IS_EBASE => 'ERROR',
+            $Type >= IS_WBASE => 'WARNING',
+            default           => 'INFO',
+        };
+        $this->SLog($level, $Message);
         return true;
     }
 

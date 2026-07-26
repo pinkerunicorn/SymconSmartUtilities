@@ -50,6 +50,7 @@ trait SmartLawnAI_Logic {
         $defaultStart = GetValue($this->GetIDForIdent('DefaultStartSchwellwert'));
         $needsWater = false;
         foreach ($zones as $zone) {
+            if (!IPS_VariableExists($zone['SensorID'])) continue;
             $aktuelleFeuchte = GetValue($zone['SensorID']);
             if ($aktuelleFeuchte <= $defaultStart) {
                 $needsWater = true;
@@ -169,6 +170,7 @@ trait SmartLawnAI_Logic {
                 }
             }
 
+            if (!IPS_VariableExists($zone['SensorID'])) continue;
             $aktuelleFeuchte = GetValue($zone['SensorID']);
             $aktuellerStatus = GetValue($this->GetIDForIdent('Status_'. $zone['SensorID']));
             if (empty($aktuellerStatus)) {

@@ -184,7 +184,10 @@ class AWMMuenchen extends IPSModuleStrict
             ]);
             $data = @file_get_contents($url, false, $context);
         }
-        if (!$data) return [];
+        if (!$data) {
+            $this->SLog('ERROR', 'AWM HTTP-Anfrage fehlgeschlagen', error_get_last()['message'] ?? 'Unbekannt');
+            return [];
+        }
 
         $lines = explode("\n", str_replace("\r", "", $data));
         $events = [];
@@ -288,8 +291,12 @@ class AWMMuenchen extends IPSModuleStrict
 
     protected function LogMessage(string $Message, int $Type): bool
     {
-        $this->SLog('INFO', $Message);
-        IPS_LogMessage('SmartVillaKunterbunt', 'AWMMuenchen: '. $Message);
+        $level = match(true) {
+            $Type >= IS_EBASE => 'ERROR',
+            $Type >= IS_WBASE => 'WARNING',
+            default           => 'INFO',
+        };
+        $this->SLog($level, $Message);
         return true;
     }
 

@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../libs/Trait_SmartLog.php';
+
 class SmartWaterMonitor extends IPSModuleStrict
 {
+    use SmartLog_Trait;
     public function Create(): void
     {
         // Never delete this line!
@@ -79,7 +82,7 @@ class SmartWaterMonitor extends IPSModuleStrict
         // Timer fired -> water running continuously for too long!
         $this->SetTimerInterval('LeakTimer', 0); // Stop timer
         $this->SetValue('LeakAlarm', true);
-        IPS_LogMessage('SmartWaterMonitor', 'LECKAGE-ALARM! Wasser fließt ununterbrochen seit ' . $this->ReadPropertyInteger('MaxContinuousFlowMinutes') . ' Minuten!');
+        $this->SLog('ERROR', 'LECKAGE-ALARM! Wasser fließt ununterbrochen seit ' . $this->ReadPropertyInteger('MaxContinuousFlowMinutes') . ' Minuten!');
     }
 
 
@@ -88,6 +91,7 @@ class SmartWaterMonitor extends IPSModuleStrict
     {
         try {
             $data = json_decode($JSONString);
+            if ($data === null && json_last_error() !== JSON_ERROR_NONE) return 'NOK';
             
             if (!isset($data->Topic) || !isset($data->Payload)) {
                 return "NOK";
