@@ -206,8 +206,7 @@ trait SmartLawnAI_Logic {
                 continue; 
             }
 
-            $currentIndexVarId = $this->GetIDForIdent('CurrentSprinklerIndex_'. $zone['SensorID']);
-            $currentIndex = (int)GetValue($currentIndexVarId);
+            $currentIndex = $this->GetZoneCurrentSprinklerIndex($zone['SensorID']);
             if (!isset($zoneSprinklers[$currentIndex])) {
                 $currentIndex = 0;
             }
@@ -228,8 +227,8 @@ trait SmartLawnAI_Logic {
                             
                             $zoneName = isset($zone['GroupName']) && !empty($zone['GroupName']) ? $zone['GroupName'] : 'Zone '. $zone['SensorID'];
                             
-                            // Berechnete Laufzeit aus Variable lesen
-                            $berechneteMinuten = (int)GetValue($this->GetIDForIdent('Dauer_'. $zone['SensorID']));
+                            // Berechnete Laufzeit aus Puffer lesen
+                            $berechneteMinuten = $this->GetZoneDauer($zone['SensorID']);
                             if ($berechneteMinuten <= 0) {
                                 $this->LogAndDebug('Sequencer', 'Zone '. $zone['SensorID'] . 'hat keine gültige Dauer. Überspringe.', 0);
                                 $this->SetZoneStatus($zone['SensorID'], 'IDLE');
@@ -256,12 +255,12 @@ trait SmartLawnAI_Logic {
                                 $this->SLog('INFO', 'Bewässerungs-Startbefehl gesendet', 'Zone: ' . $zone['SensorID'] . ' | Sprinkler: ' . $currentSprinklerName);
                                 $this->SetZoneStatus($zone['SensorID'], 'WAITING_FOR_OPEN');
                                 $this->SetZoneWateringStart($zone['SensorID'], time());
-                                $this->SetValue('CurrentSprinklerIndex_'. $zone['SensorID'], $currentIndex);
+                                $this->SetZoneCurrentSprinklerIndex($zone['SensorID'], $currentIndex);
                                 $this->AddLogEvent("{$zoneName}: Starte Bewässerung", "Sprinkler: {$currentSprinklerName}", '#2196F3');
                                 
                                 // Zwischenspeichern für den Lern-Algorithmus später
-                                $this->SetValue('StartFeuchte_'. $zone['SensorID'], $aktuelleFeuchte);
-                                $this->SetValue('Dauer_'. $zone['SensorID'], $berechneteMinuten);
+                                $this->SetZoneStartFeuchte($zone['SensorID'], $aktuelleFeuchte);
+                                $this->SetZoneDauer($zone['SensorID'], $berechneteMinuten);
                                 
                                 // Wasserzähler-Startwert merken (nur beim Start der Zone oder wenn Buffer leer)
                                 $wLiterID = $this->GetWaterMeterLiterVarID();
@@ -348,7 +347,7 @@ trait SmartLawnAI_Logic {
                         $remaining = (int)GetValue($res['RemainingSecondsID']);
                     } else {
                         $wStart = $this->GetZoneWateringStart($zone['SensorID']);
-                        $dMin = (int)GetValue($this->GetIDForIdent('Dauer_'. $zone['SensorID']));
+                        $dMin = $this->GetZoneDauer($zone['SensorID']);
                         if ($wStart > 0 && $dMin > 0) {
                             $remaining = max(0, ($dMin * 60) - (time() - $wStart));
                         }
@@ -367,7 +366,7 @@ trait SmartLawnAI_Logic {
                         $currentIndex++;
                         if ($currentIndex < count($zoneSprinklers)) {
                             // Nächster Sprinkler in dieser Zone
-                            $this->SetValue('CurrentSprinklerIndex_'. $zone['SensorID'],  $currentIndex);
+                            $this->SetZoneCurrentSprinklerIndex($zone['SensorID'], $currentIndex);
                             $this->SetZoneStatus($zone['SensorID'], 'QUEUED');
                             $this->LogAndDebug('Sequencer', 'Sprinkler gewechselt. Nächster Index: '. $currentIndex, 0);
                             
@@ -401,7 +400,7 @@ trait SmartLawnAI_Logic {
                                 $this->SetBuffer('WaterMeterStart_' . $zone['SensorID'], '');
                             }
 
-                            $this->SetValue('CurrentSprinklerIndex_'. $zone['SensorID'],  0); // Reset
+                            $this->SetZoneCurrentSprinklerIndex($zone['SensorID'], 0); // Reset
                             $this->SetZoneStatus($zone['SensorID'], 'WAITING_FOR_RESULT');
                             $this->SetZoneSickerpauseStart($zone['SensorID'], time());
                             $this->LogAndDebug('Sequencer', 'Alle Sprinkler fertig. Sickerpause gestartet.', 0);
@@ -421,8 +420,8 @@ trait SmartLawnAI_Logic {
                     if ((time() - $sickerStart) > $sickerpauseSek) {
                         
                         // Lernerfolg auswerten via Gemini
-                        $startFeuchte = (float)GetValue($this->GetIDForIdent('StartFeuchte_'. $zone['SensorID']));
-                        $dauer = (int)GetValue($this->GetIDForIdent('Dauer_'. $zone['SensorID']));
+                        $startFeuchte = $this->GetZoneStartFeuchte($zone['SensorID']);
+                        $dauer = $this->GetZoneDauer($zone['SensorID']);
                         
                         if ($dauer > 0) {
                             $this->EvaluateEfficiencyWithGemini($zone['SensorID'], $startFeuchte, $aktuelleFeuchte, $dauer, $vpd, $lux);
@@ -476,7 +475,7 @@ trait SmartLawnAI_Logic {
                 foreach ($sprinklers as $s) {
                     if ($s['ZoneName'] === $zoneName) $zSprinklers[] = $s;
                 }
-                $cIdx = (int)GetValue($this->GetIDForIdent('CurrentSprinklerIndex_'. $waterZone['SensorID']));
+                $cIdx = $this->GetZoneCurrentSprinklerIndex($waterZone['SensorID']);
                 if (!isset($zSprinklers[$cIdx])) $cIdx = 0;
                 
                 $remainingText = '';
@@ -490,7 +489,7 @@ trait SmartLawnAI_Logic {
                         $rem = (int)GetValue($cSpr['RemainingSecondsID']);
                     } else {
                         $wStart = $this->GetZoneWateringStart($waterZone['SensorID']);
-                        $dMin = (int)GetValue($this->GetIDForIdent('Dauer_'. $waterZone['SensorID']));
+                        $dMin = $this->GetZoneDauer($waterZone['SensorID']);
                         if ($wStart > 0 && $dMin > 0) {
                             $rem = max(0, ($dMin * 60) - (time() - $wStart));
                         }
@@ -739,7 +738,7 @@ trait SmartLawnAI_Logic {
                     $duration = $maxDuration;
                 }
 
-                $this->SetValue('Dauer_'. $sid, $duration);
+                $this->SetZoneDauer($sid, $duration);
                 $zoneName = isset($zone['GroupName']) && !empty($zone['GroupName']) ? $zone['GroupName'] : 'Zone '. $sid;
                 
                 if ($duration > 0) {
@@ -753,7 +752,7 @@ trait SmartLawnAI_Logic {
                 }
             } else {
                 $this->SetZoneStatus($sid, 'IDLE');
-                $this->SetValue('Dauer_'. $sid, 0);
+                $this->SetZoneDauer($sid, 0);
                 $this->LogAndDebug('Planer', 'Zone '. $sid . 'nicht im Gemini Plan enthalten. Gesetzt auf IDLE.', 0);
             }
         }
@@ -803,8 +802,9 @@ trait SmartLawnAI_Logic {
             foreach ($zones as $zone) {
                 $sid = $zone['SensorID'];
                 
-                @$this->SetValue('StartFeuchte_'. $sid, 0.0);
-                @$this->SetValue('Dauer_'. $sid, 0.0);
+                $this->SetZoneStartFeuchte($sid, 0.0);
+                $this->SetZoneDauer($sid, 0);
+                $this->SetZoneCurrentSprinklerIndex($sid, 0);
                 $this->SetZoneSickerpauseStart($sid, 0);
                 $this->SetZoneWateringStart($sid, 0);
                 $this->SetBuffer('WaterMeterStart_' . $sid, '');

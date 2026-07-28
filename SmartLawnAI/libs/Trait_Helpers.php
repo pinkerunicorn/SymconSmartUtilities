@@ -262,4 +262,28 @@ trait SmartLawnAI_Helpers {
     protected function SetZoneSickerpauseStart($sid, int $timestamp): void {
         $this->SetBuffer('ZoneSickerpauseStart_' . $sid, (string)$timestamp);
     }
+
+    protected function GetZoneStartFeuchte($sid): float {
+        return (float)$this->GetBuffer('ZoneStartFeuchte_' . $sid);
+    }
+
+    protected function SetZoneStartFeuchte($sid, float $val): void {
+        $this->SetBuffer('ZoneStartFeuchte_' . $sid, (string)$val);
+    }
+
+    protected function GetZoneDauer($sid): int {
+        return (int)$this->GetBuffer('ZoneDauer_' . $sid);
+    }
+
+    protected function SetZoneDauer($sid, int $val): void {
+        $this->SetBuffer('ZoneDauer_' . $sid, (string)$val);
+    }
+
+    protected function GetZoneCurrentSprinklerIndex($sid): int {
+        return (int)$this->GetBuffer('ZoneCurrentSprinklerIndex_' . $sid);
+    }
+
+    protected function SetZoneCurrentSprinklerIndex($sid, int $val): void {
+        $this->SetBuffer('ZoneCurrentSprinklerIndex_' . $sid, (string)$val);
+    }
 }
