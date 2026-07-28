@@ -7,8 +7,10 @@ require_once __DIR__ . '/libs/Trait_AI.php';
 require_once __DIR__ . '/libs/Trait_Logic.php';
 require_once __DIR__ . '/libs/Trait_Helpers.php';
 require_once __DIR__ . '/../libs/Trait_HouseModeAware.php';
+require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 
 class SmartLawnAI extends IPSModuleStrict {
+    use SmartLog_Trait;
     use SmartLawnAI_Weather;
     use SmartLawnAI_AI;
     use SmartLawnAI_Logic;
@@ -360,17 +362,6 @@ class SmartLawnAI extends IPSModuleStrict {
             // We do not automatically turn it back on, because we don't know if the user manually turned it off before.
             // But we could log that it's no longer blocked by Party Mode.
             $this->LogAndDebug('SmartLawnAI', "Hausmodus gewechselt auf $mode. (Bewässerung bleibt aus, falls sie zuvor im Party-Modus deaktiviert wurde).", 0);
-        }
-    }
-
-    private function SLog(string $level, string $message, string $details = ''): void
-    {
-        $source = static::class;
-        $slogInstances = @IPS_GetInstanceListByModuleID('{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}');
-        if (is_array($slogInstances) && count($slogInstances) > 0) {
-            @SLOG_Log($slogInstances[0], $level, $source, $message, $details);
-        } else {
-            IPS_LogMessage('SmartVillaKunterbunt', $source . ': ' . $message);
         }
     }
 
