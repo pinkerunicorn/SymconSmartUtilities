@@ -12,7 +12,7 @@ trait SmartLawnAI_Weather {
         $omUrl = "https://api.open-meteo.com/v1/forecast?latitude=" . number_format($lat, 6, '.', '') . "&longitude=" . number_format($lon, 6, '.', '') . "&daily=precipitation_sum&timezone=auto&forecast_days=3";
         try {
             $omContent = Sys_GetURLContent($omUrl);
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             $this->LogMessage("SLAI_UpdateWeatherForecast: Fehler beim Abrufen der Wetterdaten: " . $e->getMessage(), KL_ERROR);
             return;
         }

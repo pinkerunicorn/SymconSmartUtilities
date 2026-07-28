@@ -66,7 +66,7 @@ class AWMMuenchen extends IPSModuleStrict
     {
         $url = $this->ReadPropertyString('CalendarUrl');
         if (empty($url)) {
-            echo "Keine ICS URL konfiguriert.";
+            $this->SLogError("Keine ICS URL konfiguriert.");
             return;
         }
 
@@ -78,7 +78,7 @@ class AWMMuenchen extends IPSModuleStrict
         if (empty($events)) {
             $msg = "Fehler beim Abrufen des Abfuhrkalenders für das Jahr $currentYear. Möglicherweise ist der generierte Link (cHash) abgelaufen. Bitte generiere auf der AWM Webseite einen neuen Link für das aktuelle Jahr und trage ihn in die Instanz ein.";
             $this->LogMessage($msg, KL_ERROR);
-            echo $msg;
+            $this->SLogError($msg);
             return;
         }
 
