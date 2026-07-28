@@ -271,16 +271,15 @@ class SmartLawnAI extends IPSModuleStrict {
         if (is_array($zones)) {
             foreach ($zones as $zone) {
                 $sid = $zone['SensorID'];
-                $hasSoak = isset($zone['SoakEnabled']) ? $zone['SoakEnabled'] : false;
+                
+                // Aus Objektbaum entfernen
+                $this->UnregisterVariable('Status_'. $sid);
+                $this->UnregisterVariable('Effizienz_'. $sid);
+                $this->UnregisterVariable('SickerpauseStart_'. $sid);
+                $this->UnregisterVariable('WateringStart_'. $sid);
+
                 $name = isset($zone['GroupName']) && !empty($zone['GroupName']) ? $zone['GroupName'] : 'Zone '. $sid;
                 if (!empty($name)) {
-                    $this->RegisterVariableString('Status_'. $sid, 'ℹ Status '. $name, ['ICON' => 'Information'], 1);
-                    $this->RegisterVariableFloat('Effizienz_'. $sid, '📈 Effizienz '. $name, [
-                        'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                        'ICON'=> 'Graph',
-                        'SUFFIX'=> 'x'
-                    ], 2);
-                    $this->EnableArchive($this->GetIDForIdent('Effizienz_'. $sid));
                     $this->RegisterVariableFloat('StartFeuchte_'. $sid, 'StartFeuchte '. $name, [
                         'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
                         'ICON'=> 'Drops',
@@ -291,19 +290,13 @@ class SmartLawnAI extends IPSModuleStrict {
                         'ICON'=> 'Clock',
                         'SUFFIX'=> 'Min'
                     ], 4);
-                    $this->RegisterVariableInteger('SickerpauseStart_'. $sid, '⏳ SickerpauseStart '. $name, ['ICON' => 'Drop'], 5);
-                    $this->RegisterVariableInteger('WateringStart_'. $sid, '🚿 Bewässerungsstart '. $name, ['ICON' => 'Drop'], 6);
                     
                     $this->RegisterVariableInteger('CurrentSprinklerIndex_'. $sid, '🔢 Aktueller Sprinkler Index '. $name, ['ICON' => 'Drop'], 7);
                     IPS_SetHidden($this->GetIDForIdent('CurrentSprinklerIndex_'. $sid), true);
 
                     // IP-Symcon benennt bestehende Variablen nicht automatisch um, daher erzwingen wir es hier
-                    IPS_SetName($this->GetIDForIdent('Status_'. $sid), 'Status '. $name);
-                    IPS_SetName($this->GetIDForIdent('Effizienz_'. $sid), 'Effizienz '. $name);
                     IPS_SetName($this->GetIDForIdent('StartFeuchte_'. $sid), 'StartFeuchte '. $name);
                     IPS_SetName($this->GetIDForIdent('Dauer_'. $sid), 'Dauer '. $name);
-                    IPS_SetName($this->GetIDForIdent('SickerpauseStart_'. $sid), 'SickerpauseStart '. $name);
-                    IPS_SetName($this->GetIDForIdent('WateringStart_'. $sid), 'Bewässerungsstart '. $name);
                     IPS_SetName($this->GetIDForIdent('CurrentSprinklerIndex_'. $sid), 'Aktueller Sprinkler Index '. $name);
                 }
             }

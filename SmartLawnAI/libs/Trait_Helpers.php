@@ -228,4 +228,38 @@ trait SmartLawnAI_Helpers {
         $varID = @IPS_GetObjectIDByIdent('TotalConsumptionLiter', $instID);
         return ($varID !== false && $varID > 0) ? (int)$varID : 0;
     }
+
+    protected function GetZoneStatus($sid): string {
+        $v = $this->GetBuffer('ZoneStatus_' . $sid);
+        return $v !== '' ? $v : 'IDLE';
+    }
+
+    protected function SetZoneStatus($sid, string $status): void {
+        $this->SetBuffer('ZoneStatus_' . $sid, $status);
+    }
+
+    protected function GetZoneEffizienz($sid): float {
+        $v = $this->GetBuffer('ZoneEffizienz_' . $sid);
+        return $v !== '' ? (float)$v : 1.0;
+    }
+
+    protected function SetZoneEffizienz($sid, float $eff): void {
+        $this->SetBuffer('ZoneEffizienz_' . $sid, (string)$eff);
+    }
+
+    protected function GetZoneWateringStart($sid): int {
+        return (int)$this->GetBuffer('ZoneWateringStart_' . $sid);
+    }
+
+    protected function SetZoneWateringStart($sid, int $timestamp): void {
+        $this->SetBuffer('ZoneWateringStart_' . $sid, (string)$timestamp);
+    }
+
+    protected function GetZoneSickerpauseStart($sid): int {
+        return (int)$this->GetBuffer('ZoneSickerpauseStart_' . $sid);
+    }
+
+    protected function SetZoneSickerpauseStart($sid, int $timestamp): void {
+        $this->SetBuffer('ZoneSickerpauseStart_' . $sid, (string)$timestamp);
+    }
 }

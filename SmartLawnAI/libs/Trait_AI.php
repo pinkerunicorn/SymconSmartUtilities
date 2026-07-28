@@ -126,7 +126,7 @@ trait SmartLawnAI_AI {
                 $neueEffizienz = (float)$parsed['newEfficiencyMultiplier'];
                 $begruendung   = $parsed['reasoning'] ?? '';
 
-                $this->SetValue('Effizienz_' . $zoneID, $neueEffizienz);
+                $this->SetZoneEffizienz($zoneID, $neueEffizienz);
                 $this->SLog('INFO', 'Gemini Effizienz-Lernen (Zone ' . $zoneID . '): Neuer Faktor = ' . $neueEffizienz . 'x', $begruendung);
                 $this->AddLogEvent("{$zoneName}: KI-Lernen erfolgreich", "Neue Effizienz: {$neueEffizienz}x. Grund: {$begruendung}", '#9C27B0');
                 return;
