@@ -263,10 +263,13 @@ trait SmartLawnAI_Logic {
                                 $this->SetValue('StartFeuchte_'. $zone['SensorID'], $aktuelleFeuchte);
                                 $this->SetValue('Dauer_'. $zone['SensorID'], $berechneteMinuten);
                                 
-                                // Wasserzähler-Startwert merken
+                                // Wasserzähler-Startwert merken (nur beim Start der Zone oder wenn Buffer leer)
                                 $wLiterID = $this->GetWaterMeterLiterVarID();
                                 if ($wLiterID > 0) {
-                                    $this->SetBuffer('WaterMeterStart_' . $zone['SensorID'], (string)GetValue($wLiterID));
+                                    $existingBuffer = $this->GetBuffer('WaterMeterStart_' . $zone['SensorID']);
+                                    if ($existingBuffer === '' || $currentIndex === 0) {
+                                        $this->SetBuffer('WaterMeterStart_' . $zone['SensorID'], (string)GetValue($wLiterID));
+                                    }
                                 }
                                 
                                 $einVentilIstAktiv = true; 
@@ -321,6 +324,11 @@ trait SmartLawnAI_Logic {
                             $this->LogAndDebug('Sequencer', 'Rückmeldung erhalten: Ventil ist OFFEN. Bewässerung läuft.', 0);
                             $this->SetValue('Status_'. $zone['SensorID'], 'WATERING');
                             $this->SetValue('WateringStart_'. $zone['SensorID'], time()); // ECHTE Startzeit!
+                            // Fallback: Wasserzähler-Startwert erfassen falls bisher leer
+                            $wLiterID = $this->GetWaterMeterLiterVarID();
+                            if ($wLiterID > 0 && $this->GetBuffer('WaterMeterStart_' . $zone['SensorID']) === '') {
+                                $this->SetBuffer('WaterMeterStart_' . $zone['SensorID'], (string)GetValue($wLiterID));
+                            }
                             $aktuellerStatus = 'WATERING';
                         } else {
                             $wateringStart = (int)GetValue($this->GetIDForIdent('WateringStart_'. $zone['SensorID']));
@@ -370,18 +378,27 @@ trait SmartLawnAI_Logic {
                             // Alle Sprinkler der Zone fertig → Wasserverbrauch berechnen
                             $wLiterID = $this->GetWaterMeterLiterVarID();
                             if ($wLiterID > 0) {
-                                $wStart = (float)$this->GetBuffer('WaterMeterStart_' . $zone['SensorID']);
+                                $wStartRaw = $this->GetBuffer('WaterMeterStart_' . $zone['SensorID']);
+                                $wStart = (float)$wStartRaw;
                                 $wEnd   = (float)GetValue($wLiterID);
-                                $consumed = round($wEnd - $wStart, 1);
-                                if ($consumed > 0) {
-                                    $this->SetValue('WaterLastSession', $consumed);
-                                    $this->SetValue('WaterToday',     round($this->GetValue('WaterToday')     + $consumed, 1));
-                                    $this->SetValue('WaterThisWeek',  round($this->GetValue('WaterThisWeek')  + $consumed, 1));
-                                    $this->SetValue('WaterThisMonth', round($this->GetValue('WaterThisMonth') + $consumed, 1));
-                                    $zoneName = isset($zone['GroupName']) && !empty($zone['GroupName']) ? $zone['GroupName'] : 'Zone '. $zone['SensorID'];
-                                    $this->AddLogEvent("{$zoneName}: Verbrauch", "{$consumed} L verbraucht", '#03A9F4');
-                                    $this->SLog('INFO', 'Wasserverbrauch Zone ' . ($zone['GroupName'] ?? $zone['SensorID']), $consumed . ' L');
+                                
+                                if ($wStartRaw !== '' && $wStart > 0 && $wEnd >= $wStart) {
+                                    $consumed = round($wEnd - $wStart, 1);
+                                    if ($consumed > 0 && $consumed < 5000) {
+                                        $this->SetValue('WaterLastSession', $consumed);
+                                        $this->SetValue('WaterToday',     round($this->GetValue('WaterToday')     + $consumed, 1));
+                                        $this->SetValue('WaterThisWeek',  round($this->GetValue('WaterThisWeek')  + $consumed, 1));
+                                        $this->SetValue('WaterThisMonth', round($this->GetValue('WaterThisMonth') + $consumed, 1));
+                                        $zoneName = isset($zone['GroupName']) && !empty($zone['GroupName']) ? $zone['GroupName'] : 'Zone '. $zone['SensorID'];
+                                        $this->AddLogEvent("{$zoneName}: Verbrauch", "{$consumed} L verbraucht", '#03A9F4');
+                                        $this->SLog('INFO', 'Wasserverbrauch Zone ' . ($zone['GroupName'] ?? $zone['SensorID']), $consumed . ' L');
+                                    } else {
+                                        $this->SLog('WARNING', 'Wasserverbrauch unplausibel, ignoriert: ' . $consumed . ' L (Start: ' . $wStart . ' L, Ende: ' . $wEnd . ' L)');
+                                    }
+                                } else {
+                                    $this->SLog('WARNING', 'Wasserzähler-Startwert ungültig oder nicht vorhanden (Start: ' . $wStartRaw . ' L, Ende: ' . $wEnd . ' L)');
                                 }
+                                $this->SetBuffer('WaterMeterStart_' . $zone['SensorID'], '');
                             }
 
                             $this->SetValue('CurrentSprinklerIndex_'. $zone['SensorID'],  0); // Reset
@@ -794,6 +811,7 @@ trait SmartLawnAI_Logic {
                     @$this->SetValue('StartFeuchte_'. $sid, 0.0);
                     @$this->SetValue('Dauer_'. $sid, 0.0);
                     @$this->SetValue('SickerpauseStart_'. $sid, 0.0);
+                    $this->SetBuffer('WaterMeterStart_' . $sid, '');
 
                     // 3. Status setzen
                     $newStatus = $queueForStart ? 'QUEUED': 'IDLE';
