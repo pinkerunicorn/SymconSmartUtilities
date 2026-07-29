@@ -13,6 +13,7 @@ class MVVAbfahrten extends IPSModuleStrict
         $this->RegisterPropertyString('WantedLine', 'S 2');
         $this->RegisterPropertyString('ExcludeDestinations', 'Petershausen, Altomünster');
         $this->RegisterPropertyInteger('UpdateInterval', 60);
+        $this->RegisterPropertyBoolean('ShowDelay', true);
 
         $this->RegisterTimer('UpdateTimer', 0, 'MVV_Update($_IPS[\'TARGET\']);');
 
@@ -79,8 +80,10 @@ class MVVAbfahrten extends IPSModuleStrict
                 }
 
                 // 3. Zeit berechnen
+                $isRealtime = false;
                 if (isset($dep['realDateTime'])) {
                     $dt = $dep['realDateTime'];
+                    $isRealtime = true;
                 } else {
                     $dt = $dep['dateTime'] ?? null;
                 }
@@ -99,7 +102,17 @@ class MVVAbfahrten extends IPSModuleStrict
                 $minutesUntil = (int)round(($timestamp - time()) / 60);
                 $clockTime = date('H:i', $timestamp);
 
-                $displayText = $clockTime . ' in ' . $minutesUntil . ' min';
+                $delayMsg = '';
+                if ($this->ReadPropertyBoolean('ShowDelay') && $isRealtime && isset($dep['dateTime'])) {
+                    $planDt = $dep['dateTime'];
+                    $planTs = mktime((int)$planDt['hour'], (int)$planDt['minute'], 0, (int)$planDt['month'], (int)$planDt['day'], (int)$planDt['year']);
+                    $diff = ($timestamp - $planTs) / 60;
+                    if ($diff >= 2) {
+                        $delayMsg = ' (+' . round($diff) . ')';
+                    }
+                }
+
+                $displayText = $clockTime . ' in ' . $minutesUntil . ' min' . $delayMsg;
 
                 if (isset($dep['realtimeStatus']) && $dep['realtimeStatus'] == 'TRIP_CANCELLED') {
                     $displayText = 'AUSFALL: ' . $displayText;
