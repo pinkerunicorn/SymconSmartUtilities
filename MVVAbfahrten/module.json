@@ -1,0 +1,13 @@
+{
+    "id": "{A1B2C3D4-E5F6-1122-3344-556677889900}",
+    "name": "MVV Abfahrten",
+    "type": 3,
+    "vendor": "Florian Graßinger",
+    "aliases": ["MVV Abfahrten", "MVV", "S-Bahn"],
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
+    "prefix": "MVV",
+    "author": "Florian Graßinger",
+    "url": "https://github.com/pinkerunicorn/SymconSmartUtilities"
+}

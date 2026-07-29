@@ -1,0 +1,32 @@
+{
+    "elements": [
+        {
+            "type": "ValidationTextBox",
+            "name": "StationID",
+            "caption": "Station ID (z.B. 91001930 für München, Untermenzing)"
+        },
+        {
+            "type": "ValidationTextBox",
+            "name": "WantedLine",
+            "caption": "Gewünschte Linie (z.B. S 2)"
+        },
+        {
+            "type": "ValidationTextBox",
+            "name": "ExcludeDestinations",
+            "caption": "Auszuschließende Ziele (kommagetrennt, z.B. Petershausen, Altomünster)"
+        },
+        {
+            "type": "NumberSpinner",
+            "name": "UpdateInterval",
+            "caption": "Update Intervall (Sekunden)",
+            "minimum": 10
+        }
+    ],
+    "actions": [
+        {
+            "type": "Button",
+            "label": "Jetzt aktualisieren",
+            "onClick": "MVV_Update($_id);"
+        }
+    ]
+}
