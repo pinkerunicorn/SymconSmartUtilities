@@ -16,10 +16,17 @@ class MVVAbfahrten extends IPSModuleStrict
 
         $this->RegisterTimer('UpdateTimer', 0, 'MVV_Update($_IPS[\'TARGET\']);');
 
-        $this->RegisterVariableString('DepartureTime', 'Abfahrtszeit', '', 1, 'Clock');
-        $this->RegisterVariableString('DepartureIn', 'In Minuten', '', 2, 'Hourglass');
-        $this->RegisterVariableInteger('DepartureDelay', 'Verspätung', '', 3, 'Warning');
-        $this->RegisterVariableString('NextDeparture', 'Nächste Abfahrt (Komplett)', '', 4, 'Distance');
+        $this->RegisterVariableString('DepartureTime', 'Abfahrtszeit', '', 1);
+        IPS_SetIcon($this->GetIDForIdent('DepartureTime'), 'Clock');
+        
+        $this->RegisterVariableString('DepartureIn', 'In Minuten', '', 2);
+        IPS_SetIcon($this->GetIDForIdent('DepartureIn'), 'Hourglass');
+        
+        $this->RegisterVariableInteger('DepartureDelay', 'Verspätung', '', 3);
+        IPS_SetIcon($this->GetIDForIdent('DepartureDelay'), 'Warning');
+        
+        $this->RegisterVariableString('NextDeparture', 'Nächste Abfahrt (Komplett)', '', 4);
+        IPS_SetIcon($this->GetIDForIdent('NextDeparture'), 'Distance');
     }
 
     public function ApplyChanges(): void
