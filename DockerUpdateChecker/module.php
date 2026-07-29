@@ -53,9 +53,27 @@ class DockerUpdateChecker extends IPSModuleStrict
         if ($response !== false && $httpCode == 200) {
             $data = json_decode((string)$response, true);
             
-            if (isset($data['last_updated'])) {
+            $dockerTimestamp = 0;
+            
+            // Die tatsächlichen Images prüfen, da der Tag-Timestamp ('last_updated') 
+            // sich durch Manifest-Änderungen verschieben kann, ohne dass es ein neues Image gibt.
+            if (isset($data['images']) && is_array($data['images'])) {
+                foreach ($data['images'] as $img) {
+                    if (isset($img['last_pushed'])) {
+                        $ts = strtotime($img['last_pushed']);
+                        if ($ts > $dockerTimestamp) {
+                            $dockerTimestamp = $ts;
+                        }
+                    }
+                }
+            }
+            
+            // Fallback auf 'last_updated'
+            if ($dockerTimestamp === 0 && isset($data['last_updated'])) {
                 $dockerTimestamp = strtotime($data['last_updated']);
-                
+            }
+            
+            if ($dockerTimestamp > 0) {
                 // Toleranz 2 Stunden (7200 Sekunden) wegen leichtem Zeitversatz
                 $updateAvailable = ($dockerTimestamp > ($localTimestamp + 7200));
 
@@ -64,7 +82,7 @@ class DockerUpdateChecker extends IPSModuleStrict
                 $this->SetValue('DockerVersion', $dockerTimestamp);
                 $this->SetValue('UpdateAvailable', $updateAvailable);
             } else {
-                $this->SendDebug('Update', 'Fehler: "last_updated" im JSON nicht gefunden.', 0);
+                $this->SendDebug('Update', 'Fehler: Weder "images.last_pushed" noch "last_updated" im JSON gefunden.', 0);
             }
         } else {
             $this->SendDebug('Update', 'Fehler bei der API-Abfrage. HTTP-Code: ' . $httpCode, 0);
