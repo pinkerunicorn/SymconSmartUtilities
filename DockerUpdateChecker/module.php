@@ -17,7 +17,7 @@ class DockerUpdateChecker extends IPSModuleStrict
         $this->RegisterVariableString('LocalVersion', 'Aktuelle Version', '', 1);
         $this->RegisterVariableInteger('LocalBuild', 'Lokales Build-Datum', '~UnixTimestamp', 2);
         $this->RegisterVariableInteger('DockerVersion', 'Neueste Docker Version', '~UnixTimestamp', 3);
-        $this->RegisterVariableBoolean('UpdateAvailable', 'Update verfügbar?', '~Alert', 4);
+        $this->RegisterVariableBoolean('UpdateAvailable', 'Update verfügbar?', '', 4);
     }
 
     public function ApplyChanges(): void
