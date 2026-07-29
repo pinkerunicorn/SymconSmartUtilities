@@ -13,7 +13,7 @@ class Energierechner extends IPSModuleStrict
         $this->RegisterPropertyInteger('SourceVariable', 0);
         $this->RegisterPropertyInteger('BasePriceVariable', 0);
         $this->RegisterPropertyInteger('EnergyPriceVariable', 0);
-        $this->RegisterPropertyInteger('UpdateInterval', 5);
+        $this->RegisterPropertyInteger('UpdateInterval', 1440);
         
         $this->RegisterPropertyBoolean('IncludeBasePrice', true);
         $this->RegisterPropertyBoolean('EnableWeek', true);
@@ -28,6 +28,14 @@ class Energierechner extends IPSModuleStrict
     {
         // Never delete this line!
         parent::ApplyChanges();
+
+        // Unregister all messages
+        foreach ($this->GetMessageList() as $senderID => $messages) {
+            foreach ($messages as $message) {
+                $this->UnregisterMessage($senderID, $message);
+            }
+        }
+
         // --- Auto-generated References ---
         foreach ($this->GetReferenceList() as $refID) {
             $this->UnregisterReference($refID);
@@ -94,8 +102,22 @@ class Energierechner extends IPSModuleStrict
         $interval = $this->ReadPropertyInteger('UpdateInterval');
         $this->SetTimerInterval('UpdateTimer', $interval * 60 * 1000);
 
+        // Register for updates
+        $sourceVar = $this->ReadPropertyInteger('SourceVariable');
+        if ($sourceVar > 1 && @IPS_ObjectExists($sourceVar)) {
+            $this->RegisterMessage($sourceVar, VM_UPDATE);
+        }
+
         // Initial Update
         $this->UpdateCalculator();
+    }
+
+    public function MessageSink(int $TimeStamp, int $SenderID, int $Message, array $Data): void
+    {
+        $sourceVar = $this->ReadPropertyInteger('SourceVariable');
+        if ($SenderID === $sourceVar && $Message === VM_UPDATE) {
+            $this->UpdateCalculator();
+        }
     }
 
     public function UpdateCalculator(): void
@@ -251,9 +273,9 @@ class Energierechner extends IPSModuleStrict
         {
             "type": "NumberSpinner",
             "name": "UpdateInterval",
-            "caption": "Aktualisierungs-Intervall (Minuten)",
+            "caption": "Fallback-Aktualisierungs-Intervall (Minuten, 1440 = Täglich)",
             "minimum": 1,
-            "maximum": 1440
+            "maximum": 10080
         }
     ],
     "actions": [
