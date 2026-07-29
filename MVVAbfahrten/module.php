@@ -118,7 +118,7 @@ class MVVAbfahrten extends IPSModuleStrict
                     }
                 }
 
-                $displayText = $clockTime . ' in ' . $minutesUntil . ' min' . $delayMsg;
+                $displayText = $clockTime . ' Uhr in ' . $minutesUntil . ' min' . $delayMsg;
 
                 if (isset($dep['realtimeStatus']) && $dep['realtimeStatus'] == 'TRIP_CANCELLED') {
                     $displayText = 'AUSFALL: ' . $displayText;
