@@ -14,10 +14,10 @@ class DockerUpdateChecker extends IPSModuleStrict
 
         $this->RegisterTimer('UpdateTimer', 0, 'SDU_Update($_IPS[\'TARGET\']);');
 
-        $this->RegisterVariableString('LocalVersion', 'Aktuelle Version', '', 1);
-        $this->RegisterVariableInteger('LocalBuild', 'Lokales Build-Datum', '~UnixTimestamp', 2);
-        $this->RegisterVariableInteger('DockerVersion', 'Neueste Docker Version', '~UnixTimestamp', 3);
-        $this->RegisterVariableBoolean('UpdateAvailable', 'Update verfügbar?', '', 4);
+        $this->RegisterVariableString('LocalVersion', 'Aktuelle Version', '', 1, 'Information');
+        $this->RegisterVariableInteger('LocalBuild', 'Lokales Build-Datum', '~UnixTimestamp', 2, 'Clock');
+        $this->RegisterVariableInteger('DockerVersion', 'Neueste Docker Version', '~UnixTimestamp', 3, 'Network');
+        $this->RegisterVariableBoolean('UpdateAvailable', 'Update verfügbar?', '', 4, 'Warning');
     }
 
     public function ApplyChanges(): void
