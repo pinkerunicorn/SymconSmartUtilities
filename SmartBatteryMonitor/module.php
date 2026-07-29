@@ -30,6 +30,7 @@ class SmartBatteryMonitor extends IPSModuleStrict
             'ICON'         => 'Clock'
         ], 3);
         $this->RegisterVariableString('MonitoredBatteries', 'Überwachte Batterien (Liste)', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Battery'
         ], 4);
     }
@@ -52,7 +53,24 @@ class SmartBatteryMonitor extends IPSModuleStrict
         }
         // ---------------------------------
         
-        // Custom Presentations now handled inline in Create()
+        $alarmOptions = json_encode([
+            ['Value' => false, 'Caption' => 'OK', 'IconValue' => 'Battery', 'IconActive' => true,
+             'ColorActive' => true, 'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false,
+             'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00],
+            ['Value' => true, 'Caption' => 'Alarm!', 'IconValue' => 'Battery', 'IconActive' => true,
+             'ColorActive' => true, 'ColorDisplay' => 0xFF0000, 'ContentColorActive' => false,
+             'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF0000]
+        ]);
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('AlarmActive'), [
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON' => 'Battery',
+            'COLOR' => -1,
+            'CONTENT_COLOR' => -1,
+            'DISPLAY_TYPE' => 0,
+            'PREVIEW_STYLE' => 1,
+            'SHOW_PREVIEW' => true,
+            'OPTIONS' => $alarmOptions
+        ]);
         
         $this->SetDailyTimer();
         $this->CheckBatteries();

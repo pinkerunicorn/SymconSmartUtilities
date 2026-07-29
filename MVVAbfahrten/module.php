@@ -16,17 +16,25 @@ class MVVAbfahrten extends IPSModuleStrict
 
         $this->RegisterTimer('UpdateTimer', 0, 'MVV_Update($_IPS[\'TARGET\']);');
 
-        $this->RegisterVariableString('DepartureTime', 'Abfahrtszeit', '', 1);
-        IPS_SetIcon($this->GetIDForIdent('DepartureTime'), 'Clock');
+        $this->RegisterVariableString('DepartureTime', 'Abfahrtszeit', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON' => 'Clock'
+        ], 1);
         
-        $this->RegisterVariableString('DepartureIn', 'In Minuten', '', 2);
-        IPS_SetIcon($this->GetIDForIdent('DepartureIn'), 'Hourglass');
+        $this->RegisterVariableString('DepartureIn', 'In Minuten', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON' => 'Hourglass'
+        ], 2);
         
-        $this->RegisterVariableInteger('DepartureDelay', 'Verspätung', '', 3);
-        IPS_SetIcon($this->GetIDForIdent('DepartureDelay'), 'Warning');
+        $this->RegisterVariableInteger('DepartureDelay', 'Verspätung', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON' => 'Warning'
+        ], 3);
         
-        $this->RegisterVariableString('NextDeparture', 'Nächste Abfahrt (Komplett)', '', 4);
-        IPS_SetIcon($this->GetIDForIdent('NextDeparture'), 'Distance');
+        $this->RegisterVariableString('NextDeparture', 'Nächste Abfahrt (Komplett)', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON' => 'Distance'
+        ], 4);
     }
 
     public function ApplyChanges(): void

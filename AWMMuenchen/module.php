@@ -19,35 +19,54 @@ class AWMMuenchen extends IPSModuleStrict
 
         // Heutige Abholungen
         $this->RegisterVariableBoolean('RestmuellHeute', 'Restmülltonne (Heute)', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
-            'ICON' => 'Clock'
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON' => 'Trash'
         ], 10);
         $this->RegisterVariableBoolean('PapierHeute', 'Papiertonne (Heute)', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
-            'ICON' => 'Clock'
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON' => 'Trash'
         ], 20);
         $this->RegisterVariableBoolean('BioHeute', 'Biotonne (Heute)', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
-            'ICON' => 'Clock'
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON' => 'Trash'
         ], 30);
 
         // Heute: Einzelne String-Variable als Zusammenfassung
-        $this->RegisterVariableString('Heute', 'Heute', ['ICON' => 'Clock'], 4);
-        $this->RegisterVariableString('VestaboardMessage', 'Vestaboard Nachricht', ['ICON' => 'Clock'], 5);
+        $this->RegisterVariableString('Heute', 'Heute', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Clock'], 4);
+        $this->RegisterVariableString('VestaboardMessage', 'Vestaboard Nachricht', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Clock'], 5);
 
         // Variablen für Wochentage (Wochenübersicht)
-        $this->RegisterVariableString('Montag', 'Montag', ['ICON' => 'Clock'], 11);
-        $this->RegisterVariableString('Dienstag', 'Dienstag', ['ICON' => 'Clock'], 12);
-        $this->RegisterVariableString('Mittwoch', 'Mittwoch', ['ICON' => 'Clock'], 13);
-        $this->RegisterVariableString('Donnerstag', 'Donnerstag', ['ICON' => 'Clock'], 14);
-        $this->RegisterVariableString('Freitag', 'Freitag', ['ICON' => 'Clock'], 15);
-        $this->RegisterVariableString('Samstag', 'Samstag', ['ICON' => 'Clock'], 16);
+        $this->RegisterVariableString('Montag', 'Montag', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Clock'], 11);
+        $this->RegisterVariableString('Dienstag', 'Dienstag', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Clock'], 12);
+        $this->RegisterVariableString('Mittwoch', 'Mittwoch', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Clock'], 13);
+        $this->RegisterVariableString('Donnerstag', 'Donnerstag', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Clock'], 14);
+        $this->RegisterVariableString('Freitag', 'Freitag', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Clock'], 15);
+        $this->RegisterVariableString('Samstag', 'Samstag', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Clock'], 16);
     }
 
     public function ApplyChanges(): void{
         parent::ApplyChanges();
 
-
+        $trashOptions = json_encode([
+            ['Value' => false, 'Caption' => 'Nein', 'IconValue' => 'Trash', 'IconActive' => false,
+             'ColorActive' => false, 'ColorDisplay' => -1, 'ContentColorActive' => false,
+             'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => -1],
+            ['Value' => true, 'Caption' => 'Heute!', 'IconValue' => 'Trash', 'IconActive' => true,
+             'ColorActive' => true, 'ColorDisplay' => 0xFFCC00, 'ContentColorActive' => false,
+             'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFFCC00]
+        ]);
+        foreach (['RestmuellHeute', 'PapierHeute', 'BioHeute'] as $ident) {
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent($ident), [
+                'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+                'ICON' => 'Trash',
+                'COLOR' => -1,
+                'CONTENT_COLOR' => -1,
+                'DISPLAY_TYPE' => 0,
+                'PREVIEW_STYLE' => 1,
+                'SHOW_PREVIEW' => true,
+                'OPTIONS' => $trashOptions
+            ]);
+        }
 
         $interval = $this->ReadPropertyInteger('UpdateInterval');
         if ($interval > 0) {

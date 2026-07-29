@@ -26,11 +26,11 @@ class SmartWaterMonitor extends IPSModuleStrict
         ]);
         $this->RegisterVariableBoolean('LeakAlarm', 'Leckage-Alarm', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Alert'
+            'ICON'         => 'Drops'
         ]);
         $this->RegisterVariableBoolean('WaterRunning', 'Wasser fließt', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Drop'
+            'ICON'         => 'Drops'
         ]);
         $this->RegisterVariableFloat('FlowRate', 'Aktueller Durchfluss', [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
@@ -65,6 +65,63 @@ class SmartWaterMonitor extends IPSModuleStrict
         // Register MQTT Filter
         $topic = $this->ReadPropertyString('MQTTBaseTopic');
         $this->SetReceiveDataFilter('.*' . preg_quote($topic) . '.*');
+
+        $onlineOptions = json_encode([
+            ['Value' => false, 'Caption' => 'Offline', 'IconValue' => 'Network', 'IconActive' => true,
+             'ColorActive' => true, 'ColorDisplay' => 0xFF0000, 'ContentColorActive' => false,
+             'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF0000],
+            ['Value' => true, 'Caption' => 'Online', 'IconValue' => 'Network', 'IconActive' => true,
+             'ColorActive' => true, 'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false,
+             'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00]
+        ]);
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Online'), [
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON' => 'Network',
+            'COLOR' => -1,
+            'CONTENT_COLOR' => -1,
+            'DISPLAY_TYPE' => 0,
+            'PREVIEW_STYLE' => 1,
+            'SHOW_PREVIEW' => true,
+            'OPTIONS' => $onlineOptions
+        ]);
+
+        $leakOptions = json_encode([
+            ['Value' => false, 'Caption' => 'OK', 'IconValue' => 'Drops', 'IconActive' => true,
+             'ColorActive' => true, 'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false,
+             'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00],
+            ['Value' => true, 'Caption' => 'Leck erkannt!', 'IconValue' => 'Drops', 'IconActive' => true,
+             'ColorActive' => true, 'ColorDisplay' => 0xFF0000, 'ContentColorActive' => false,
+             'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFF0000]
+        ]);
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('LeakAlarm'), [
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON' => 'Drops',
+            'COLOR' => -1,
+            'CONTENT_COLOR' => -1,
+            'DISPLAY_TYPE' => 0,
+            'PREVIEW_STYLE' => 1,
+            'SHOW_PREVIEW' => true,
+            'OPTIONS' => $leakOptions
+        ]);
+
+        $runningOptions = json_encode([
+            ['Value' => false, 'Caption' => 'Kein Fluss', 'IconValue' => 'Drops', 'IconActive' => false,
+             'ColorActive' => false, 'ColorDisplay' => -1, 'ContentColorActive' => false,
+             'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => -1],
+            ['Value' => true, 'Caption' => 'Laeuft', 'IconValue' => 'Drops', 'IconActive' => true,
+             'ColorActive' => true, 'ColorDisplay' => 0x0088FF, 'ContentColorActive' => false,
+             'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x0088FF]
+        ]);
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('WaterRunning'), [
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON' => 'Drops',
+            'COLOR' => -1,
+            'CONTENT_COLOR' => -1,
+            'DISPLAY_TYPE' => 0,
+            'PREVIEW_STYLE' => 1,
+            'SHOW_PREVIEW' => true,
+            'OPTIONS' => $runningOptions
+        ]);
 
     }
 

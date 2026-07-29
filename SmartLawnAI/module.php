@@ -55,10 +55,10 @@ class SmartLawnAI extends IPSModuleStrict {
         ], 13);
 
         // Summenstatus Variable (fürs Webfront)
-        $this->RegisterVariableString('SummaryStatus', '🤖 Aktueller Status', ['ICON' => 'Information'], 0);
-        $this->RegisterVariableString('VestaboardMessage', 'Vestaboard Nachricht', ['ICON' => 'Information'], 1);
-        $this->RegisterVariableString('LastGeminiResponse', '🧠 Letzte KI-Antwort', ['ICON' => 'Information'], 2);
-        $this->RegisterVariableString('IrrigationLog', '📝 Bewässerungs-Log', ['ICON' => 'Drop'], 3);
+        $this->RegisterVariableString('SummaryStatus', '🤖 Aktueller Status', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Information'], 0);
+        $this->RegisterVariableString('VestaboardMessage', 'Vestaboard Nachricht', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Information'], 1);
+        $this->RegisterVariableString('LastGeminiResponse', '🧠 Letzte KI-Antwort', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Information'], 2);
+        $this->RegisterVariableString('IrrigationLog', '📝 Bewässerungs-Log', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Drop'], 3);
 
         // Status/Trigger Variablen
         $this->RegisterVariableBoolean('AutomaticActive', '⚙ Automatik aktiv', [
@@ -92,7 +92,7 @@ class SmartLawnAI extends IPSModuleStrict {
         // Water Monitor
         $this->RegisterPropertyInteger('WaterMonitorInstanceID', 0);
         
-        $this->RegisterVariableBoolean('WateringActive', 'Bewässerung läuft', ['ICON' => 'Drop'], 4);
+        $this->RegisterVariableBoolean('WateringActive', 'Bewässerung läuft', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Drop'], 4);
 
         // Wasserverbrauch-Variablen
         $this->RegisterVariableFloat('WaterLastSession', 'Letzte Beregnung', [
@@ -119,8 +119,8 @@ class SmartLawnAI extends IPSModuleStrict {
         $this->SetVisualizationType(1);
 
         // Wetter/Regen
-        $this->RegisterVariableFloat('ForecastRainToday', '🌧 Regen Heute', ['ICON' => 'Cloud'], 5);
-        $this->RegisterVariableFloat('ForecastRainTomorrow', '🌧 Regen Morgen', ['ICON' => 'Cloud'], 6);
+        $this->RegisterVariableFloat('ForecastRainToday', '🌧 Regen Heute', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Cloud'], 5);
+        $this->RegisterVariableFloat('ForecastRainTomorrow', '🌧 Regen Morgen', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Cloud'], 6);
 
         // Zonen (Hardware)
         $this->RegisterPropertyString('Zones', '[]');
@@ -248,6 +248,24 @@ class SmartLawnAI extends IPSModuleStrict {
             $this->RegisterMessage($splitterID, IM_CHANGESTATUS);
         }
 
+        $wateringOptions = json_encode([
+            ['Value' => false, 'Caption' => 'Inaktiv', 'IconValue' => 'Drops', 'IconActive' => false,
+             'ColorActive' => false, 'ColorDisplay' => -1, 'ContentColorActive' => false,
+             'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => -1],
+            ['Value' => true, 'Caption' => 'Bewaessert', 'IconValue' => 'Drops', 'IconActive' => true,
+             'ColorActive' => true, 'ColorDisplay' => 0x0088FF, 'ContentColorActive' => false,
+             'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x0088FF]
+        ]);
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('WateringActive'), [
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON' => 'Drops',
+            'COLOR' => -1,
+            'CONTENT_COLOR' => -1,
+            'DISPLAY_TYPE' => 0,
+            'PREVIEW_STYLE' => 1,
+            'SHOW_PREVIEW' => true,
+            'OPTIONS' => $wateringOptions
+        ]);
          
         // Removed presentation for IrrigationLog per user request
 

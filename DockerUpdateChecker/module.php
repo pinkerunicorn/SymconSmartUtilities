@@ -14,17 +14,25 @@ class DockerUpdateChecker extends IPSModuleStrict
 
         $this->RegisterTimer('UpdateTimer', 0, 'SDU_Update($_IPS[\'TARGET\']);');
 
-        $this->RegisterVariableString('LocalVersion', 'Aktuelle Version', '', 1);
-        IPS_SetIcon($this->GetIDForIdent('LocalVersion'), 'Information');
+        $this->RegisterVariableString('LocalVersion', 'Aktuelle Version', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON' => 'Information'
+        ], 1);
         
-        $this->RegisterVariableInteger('LocalBuild', 'Lokales Build-Datum', '~UnixTimestamp', 2);
-        IPS_SetIcon($this->GetIDForIdent('LocalBuild'), 'Clock');
+        $this->RegisterVariableInteger('LocalBuild', 'Lokales Build-Datum', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_DATE_TIME,
+            'ICON' => 'Clock'
+        ], 2);
         
-        $this->RegisterVariableInteger('DockerVersion', 'Neueste Docker Version', '~UnixTimestamp', 3);
-        IPS_SetIcon($this->GetIDForIdent('DockerVersion'), 'Network');
+        $this->RegisterVariableInteger('DockerVersion', 'Neueste Docker Version', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_DATE_TIME,
+            'ICON' => 'Network'
+        ], 3);
         
-        $this->RegisterVariableBoolean('UpdateAvailable', 'Update verfügbar?', '', 4);
-        IPS_SetIcon($this->GetIDForIdent('UpdateAvailable'), 'Warning');
+        $this->RegisterVariableBoolean('UpdateAvailable', 'Update verfügbar?', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON' => 'Warning'
+        ], 4);
     }
 
     public function ApplyChanges(): void
@@ -33,6 +41,25 @@ class DockerUpdateChecker extends IPSModuleStrict
         parent::ApplyChanges();
 
         $this->SetTimerInterval('UpdateTimer', $this->ReadPropertyInteger('UpdateInterval') * 1000);
+
+        $updateOptions = json_encode([
+            ['Value' => false, 'Caption' => 'Aktuell', 'IconValue' => 'Warning', 'IconActive' => true,
+             'ColorActive' => true, 'ColorDisplay' => 0x00CC00, 'ContentColorActive' => false,
+             'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0x00CC00],
+            ['Value' => true, 'Caption' => 'Update verfügbar!', 'IconValue' => 'Warning', 'IconActive' => true,
+             'ColorActive' => true, 'ColorDisplay' => 0xFFA500, 'ContentColorActive' => false,
+             'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFFA500]
+        ]);
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('UpdateAvailable'), [
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON' => 'Warning',
+            'COLOR' => -1,
+            'CONTENT_COLOR' => -1,
+            'DISPLAY_TYPE' => 0,
+            'PREVIEW_STYLE' => 1,
+            'SHOW_PREVIEW' => true,
+            'OPTIONS' => $updateOptions
+        ]);
 
         // Den Variablennamen passend zum Channel anpassen
         IPS_SetName($this->GetIDForIdent('DockerVersion'), 'Neueste Docker \'' . $this->ReadPropertyString('Channel') . '\' Version');
