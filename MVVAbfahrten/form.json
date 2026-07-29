@@ -20,11 +20,6 @@
             "name": "UpdateInterval",
             "caption": "Update Intervall (Sekunden)",
             "minimum": 10
-        },
-        {
-            "type": "CheckBox",
-            "name": "ShowDelay",
-            "caption": "Verspätung anzeigen (ab 2 Min)"
         }
     ],
     "actions": [

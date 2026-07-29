@@ -13,11 +13,13 @@ class MVVAbfahrten extends IPSModuleStrict
         $this->RegisterPropertyString('WantedLine', 'S 2');
         $this->RegisterPropertyString('ExcludeDestinations', 'Petershausen, Altomünster');
         $this->RegisterPropertyInteger('UpdateInterval', 60);
-        $this->RegisterPropertyBoolean('ShowDelay', true);
 
         $this->RegisterTimer('UpdateTimer', 0, 'MVV_Update($_IPS[\'TARGET\']);');
 
-        $this->RegisterVariableString('NextDeparture', 'Nächste Abfahrt', '', 0);
+        $this->RegisterVariableString('DepartureTime', 'Abfahrtszeit', '', 1);
+        $this->RegisterVariableString('DepartureIn', 'In Minuten', '', 2);
+        $this->RegisterVariableInteger('DepartureDelay', 'Verspätung', '', 3);
+        $this->RegisterVariableString('NextDeparture', 'Nächste Abfahrt (Komplett)', '', 4);
     }
 
     public function ApplyChanges(): void
@@ -102,13 +104,17 @@ class MVVAbfahrten extends IPSModuleStrict
                 $minutesUntil = (int)round(($timestamp - time()) / 60);
                 $clockTime = date('H:i', $timestamp);
 
+                $delayMinutes = 0;
                 $delayMsg = '';
-                if ($this->ReadPropertyBoolean('ShowDelay') && $isRealtime && isset($dep['dateTime'])) {
+                if ($isRealtime && isset($dep['dateTime'])) {
                     $planDt = $dep['dateTime'];
                     $planTs = mktime((int)$planDt['hour'], (int)$planDt['minute'], 0, (int)$planDt['month'], (int)$planDt['day'], (int)$planDt['year']);
                     $diff = ($timestamp - $planTs) / 60;
-                    if ($diff >= 2) {
-                        $delayMsg = ' (+' . round($diff) . ')';
+                    if ($diff > 0) {
+                        $delayMinutes = (int)round($diff);
+                    }
+                    if ($delayMinutes >= 2) {
+                        $delayMsg = ' (+' . $delayMinutes . ')';
                     }
                 }
 
@@ -118,6 +124,9 @@ class MVVAbfahrten extends IPSModuleStrict
                     $displayText = 'AUSFALL: ' . $displayText;
                 }
 
+                $this->SetValue('DepartureTime', $clockTime . ' Uhr');
+                $this->SetValue('DepartureIn', 'In ' . $minutesUntil . ' Minuten');
+                $this->SetValue('DepartureDelay', $delayMinutes);
                 $this->SetValue('NextDeparture', $displayText);
                 $foundDeparture = true;
                 break; 
@@ -125,6 +134,9 @@ class MVVAbfahrten extends IPSModuleStrict
         }
 
         if (!$foundDeparture) {
+            $this->SetValue('DepartureTime', '--');
+            $this->SetValue('DepartureIn', '--');
+            $this->SetValue('DepartureDelay', 0);
             $this->SetValue('NextDeparture', '--');
         }
     }
