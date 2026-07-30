@@ -6,7 +6,7 @@ require_once __DIR__ . '/libs/Trait_Weather.php';
 require_once __DIR__ . '/libs/Trait_AI.php';
 require_once __DIR__ . '/libs/Trait_Logic.php';
 require_once __DIR__ . '/libs/Trait_Helpers.php';
-require_once __DIR__ . '/../libs/Trait_HouseModeAware.php';
+require_once __DIR__ . '/../libs/Trait_CentralStateAware.php';
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
 
 class SmartLawnAI extends IPSModuleStrict {
@@ -15,7 +15,7 @@ class SmartLawnAI extends IPSModuleStrict {
     use SmartLawnAI_AI;
     use SmartLawnAI_Logic;
     use SmartLawnAI_Helpers;
-    use HouseModeAware_Trait;
+    use CentralStateAware_Trait;
 
     public function Create(): void {
         parent::Create();
@@ -135,7 +135,6 @@ class SmartLawnAI extends IPSModuleStrict {
         // NEU: Gemini Retry Timer
         $this->RegisterTimer('GeminiRetryTimer', 0, 'SLAI_ProcessGeminiRetry($_IPS[\'TARGET\']);');
         
-        $this->RegisterHouseModeAwareness();
     }
 
     public function RequestAction(string $Ident, mixed $Value): void {
@@ -200,7 +199,7 @@ class SmartLawnAI extends IPSModuleStrict {
             }
         }
         // ---------------------------------
-        $this->ApplyHouseModeSubscription();
+        $this->SubscribeToCentralStates(['PresenceMode', 'ActivityMode']);
 
         // Timer aktivieren (alle 1.000 ms = 1 Sekunde)
         // Status/Trigger Variablen
@@ -303,7 +302,7 @@ class SmartLawnAI extends IPSModuleStrict {
     }
 
     public function MessageSink(int $TimeStamp, int $SenderID, int $Message, array $Data): void {
-        if ($this->HandleHouseModeMessage($SenderID, $Message, $Data)) return;
+        if ($this->HandleCentralStateMessage($SenderID, $Message, $Data)) return;
 
         if ($Message == IM_CHANGESTATUS) {
             $splitterID = $this->ReadPropertyInteger('GardenaSplitterID');
@@ -342,9 +341,8 @@ class SmartLawnAI extends IPSModuleStrict {
         }
     }
     
-    private function OnHouseModeChanged(int $mode, bool $isAbsence, bool $isSleep): void {
-        // 0=Anwesenheit, 1=Abwesenheit, 2=Urlaub, 3=Party, 4=Heimkino, 5=Schlafen, 6=Putzen
-        if ($mode == 3) {
+    private function OnCentralStateChanged(string $stateName, mixed $newValue): void {
+        if ($this->IsParty()) {
             // Party Mode -> Turn off automatic watering to prevent wet guests
             if ($this->GetValue('AutomaticActive')) {
                 $this->RequestAction('AutomaticActive', false);
@@ -353,7 +351,7 @@ class SmartLawnAI extends IPSModuleStrict {
         } else {
             // We do not automatically turn it back on, because we don't know if the user manually turned it off before.
             // But we could log that it's no longer blocked by Party Mode.
-            $this->LogAndDebug('SmartLawnAI', "Hausmodus gewechselt auf $mode. (Bewässerung bleibt aus, falls sie zuvor im Party-Modus deaktiviert wurde).", 0);
+            $this->LogAndDebug('SmartLawnAI', "Zentraler Status gewechselt: $stateName=$newValue. (Bewässerung bleibt aus, falls sie zuvor im Party-Modus deaktiviert wurde).", 0);
         }
     }
 
@@ -531,11 +529,7 @@ class SmartLawnAI extends IPSModuleStrict {
             "type": "Label",
             "caption": "Hier definierst du deine Beregnungskreise. Gib jedem Kreis einen Namen und verknüpfe ihn mit einem passenden Bodenfeuchtesensor."
         },
-        {
-            "type": "SelectVariable",
-            "name": "HouseModeVariableID",
-            "caption": "Haus-Modus Variable"
-        },
+
         {
             "type": "List",
             "name": "Zones",

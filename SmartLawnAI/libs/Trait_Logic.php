@@ -115,7 +115,11 @@ trait SmartLawnAI_Logic {
             }
         }
         
+        $wasActive = $this->GetValue('WateringActive');
         $this->SetValue('WateringActive', $einVentilIstAktiv);
+        if ($wasActive !== $einVentilIstAktiv && function_exists('SHC_SetIrrigationActive')) {
+            SHC_SetIrrigationActive($einVentilIstAktiv);
+        }
 
         // 2. Thermodynamik (VPD) für alle Zonen vorbereiten
         $airTempID = $this->ReadPropertyInteger('GlobalAirTempID');
