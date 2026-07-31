@@ -54,7 +54,7 @@ class AWMMuenchen extends IPSModuleStrict
             if ($id !== false) {
                 IPS_SetVariableCustomPresentation($id, []);
                 // Reset initial icon if not already set by UpdateCalendar
-                if (IPS_GetIcon($id) == '') {
+                if (IPS_GetObject($id)['ObjectIcon'] == '') {
                     IPS_SetIcon($id, 'Clock');
                 }
             }
