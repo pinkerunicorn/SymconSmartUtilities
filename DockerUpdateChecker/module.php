@@ -16,7 +16,6 @@ class DockerUpdateChecker extends IPSModuleStrict
         //Never delete this line!
         parent::Create();
 
-        $this->RegisterPropertyInteger('AvailabilityAlarmPriority', 0);
         $this->DA_RegisterAvailability(900);
 
         $this->RegisterPropertyString('Channel', 'stable');

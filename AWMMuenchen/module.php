@@ -12,7 +12,6 @@ class AWMMuenchen extends IPSModuleStrict
     public function Create(): void{
         parent::Create();
 
-        $this->RegisterPropertyInteger('AvailabilityAlarmPriority', 0);
         $this->DA_RegisterAvailability(900);
 
         // Properties
