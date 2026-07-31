@@ -32,20 +32,33 @@ class AWMMuenchen extends IPSModuleStrict
         ], 30);
 
         // Heute: Einzelne String-Variable als Zusammenfassung
-        $this->RegisterVariableString('Heute', 'Heute', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Clock'], 4);
-        $this->RegisterVariableString('VestaboardMessage', 'Vestaboard Nachricht', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Clock'], 5);
+        $this->RegisterVariableString('Heute', 'Heute', '', 4);
+        $this->RegisterVariableString('VestaboardMessage', 'Vestaboard Nachricht', '', 5);
 
         // Variablen für Wochentage (Wochenübersicht)
-        $this->RegisterVariableString('Montag', 'Montag', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Clock'], 11);
-        $this->RegisterVariableString('Dienstag', 'Dienstag', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Clock'], 12);
-        $this->RegisterVariableString('Mittwoch', 'Mittwoch', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Clock'], 13);
-        $this->RegisterVariableString('Donnerstag', 'Donnerstag', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Clock'], 14);
-        $this->RegisterVariableString('Freitag', 'Freitag', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Clock'], 15);
-        $this->RegisterVariableString('Samstag', 'Samstag', ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => 'Clock'], 16);
+        $this->RegisterVariableString('Montag', 'Montag', '', 11);
+        $this->RegisterVariableString('Dienstag', 'Dienstag', '', 12);
+        $this->RegisterVariableString('Mittwoch', 'Mittwoch', '', 13);
+        $this->RegisterVariableString('Donnerstag', 'Donnerstag', '', 14);
+        $this->RegisterVariableString('Freitag', 'Freitag', '', 15);
+        $this->RegisterVariableString('Samstag', 'Samstag', '', 16);
     }
 
     public function ApplyChanges(): void{
         parent::ApplyChanges();
+
+        // Clear custom presentations on string variables so IPS_SetIcon works
+        $stringVars = ['Heute', 'VestaboardMessage', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+        foreach ($stringVars as $ident) {
+            $id = @$this->GetIDForIdent($ident);
+            if ($id !== false) {
+                IPS_SetVariableCustomPresentation($id, []);
+                // Reset initial icon if not already set by UpdateCalendar
+                if (IPS_GetIcon($id) == '') {
+                    IPS_SetIcon($id, 'Clock');
+                }
+            }
+        }
 
         if (!IPS_VariableProfileExists('AWM.WasteToday')) {
             IPS_CreateVariableProfile('AWM.WasteToday', 0); // 0 = Boolean
@@ -156,7 +169,7 @@ class AWMMuenchen extends IPSModuleStrict
         if (in_array('Restmüll', $heuteListe)) $heuteIcon = 'Trash';
         elseif (in_array('Papier', $heuteListe)) $heuteIcon = 'Notebook';
         elseif (in_array('Bio', $heuteListe)) $heuteIcon = 'Leaf';
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Heute'), ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => $heuteIcon]);
+        IPS_SetIcon($this->GetIDForIdent('Heute'), $heuteIcon);
         
         $heuteVesta = empty($heuteListe) ? '' : implode(', ', $heuteListe);
         $this->SetValue('VestaboardMessage', $heuteVesta);
@@ -173,7 +186,7 @@ class AWMMuenchen extends IPSModuleStrict
             if (in_array('Restmüll', $dayList)) $dayIcon = 'Trash';
             elseif (in_array('Papier', $dayList)) $dayIcon = 'Notebook';
             elseif (in_array('Bio', $dayList)) $dayIcon = 'Leaf';
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent($varName), ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => $dayIcon]);
+            IPS_SetIcon($this->GetIDForIdent($varName), $dayIcon);
         }
         
         $this->SendDebug("AWM", "Kalender erfolgreich aktualisiert.", 0);
