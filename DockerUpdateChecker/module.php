@@ -2,8 +2,13 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../libs/Trait_SmartLog.php';
+require_once __DIR__ . '/../libs/Trait_SmartHttp.php';
+
 class DockerUpdateChecker extends IPSModuleStrict
 {
+    use SmartLog_Trait;
+    use SmartHttp_Trait;
     public function Create(): void
     {
         //Never delete this line!
@@ -76,16 +81,12 @@ class DockerUpdateChecker extends IPSModuleStrict
         $channel = $this->ReadPropertyString('Channel');
         $url = 'https://hub.docker.com/v2/repositories/symcon/symcon/tags/' . urlencode($channel);
 
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'Symcon-Update-Checker');
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        $headers = [
+            'User-Agent: Symcon-Update-Checker'
+        ];
+        $data = $this->HttpRequest($url, 'GET', $headers, null, 5, true);
 
-        if ($response !== false && $httpCode == 200) {
-            $data = json_decode((string)$response, true);
+        if ($data !== null) {
             
             $dockerTimestamp = 0;
             
