@@ -156,7 +156,7 @@ class AWMMuenchen extends IPSModuleStrict
         if (in_array('Restmüll', $heuteListe)) $heuteIcon = 'Trash';
         elseif (in_array('Papier', $heuteListe)) $heuteIcon = 'Notebook';
         elseif (in_array('Bio', $heuteListe)) $heuteIcon = 'Leaf';
-        IPS_SetIcon($this->GetIDForIdent('Heute'), $heuteIcon);
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Heute'), ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => $heuteIcon]);
         
         $heuteVesta = empty($heuteListe) ? '' : implode(', ', $heuteListe);
         $this->SetValue('VestaboardMessage', $heuteVesta);
@@ -173,7 +173,7 @@ class AWMMuenchen extends IPSModuleStrict
             if (in_array('Restmüll', $dayList)) $dayIcon = 'Trash';
             elseif (in_array('Papier', $dayList)) $dayIcon = 'Notebook';
             elseif (in_array('Bio', $dayList)) $dayIcon = 'Leaf';
-            IPS_SetIcon($this->GetIDForIdent($varName), $dayIcon);
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent($varName), ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => $dayIcon]);
         }
         
         $this->SendDebug("AWM", "Kalender erfolgreich aktualisiert.", 0);
