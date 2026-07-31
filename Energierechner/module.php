@@ -29,6 +29,12 @@ class Energierechner extends IPSModuleStrict
         // Never delete this line!
         parent::ApplyChanges();
 
+        $sourceVar = $this->ReadPropertyInteger('SourceVariable');
+        if ($sourceVar == 0 || !IPS_VariableExists($sourceVar)) {
+            $this->SetStatus(104);
+            return;
+        }
+
         // Unregister all messages
         foreach ($this->GetMessageList() as $senderID => $messages) {
             foreach ($messages as $message) {

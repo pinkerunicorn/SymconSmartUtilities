@@ -3,12 +3,17 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/Trait_SmartLog.php';
+require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
 
 class AWMMuenchen extends IPSModuleStrict
 {
     use SmartLog_Trait;
+    use DeviceAvailability_Trait;
     public function Create(): void{
         parent::Create();
+
+        $this->RegisterPropertyInteger('AvailabilityAlarmPriority', 0);
+        $this->DA_RegisterAvailability(900);
 
         // Properties
         $this->RegisterPropertyString('CalendarUrl', '');
@@ -47,6 +52,15 @@ class AWMMuenchen extends IPSModuleStrict
     public function ApplyChanges(): void{
         parent::ApplyChanges();
 
+        $url = $this->ReadPropertyString('CalendarUrl');
+        if (empty($url)) {
+            $this->SetStatus(104);
+            return;
+        }
+        $this->SetStatus(102);
+
+        $this->DA_ApplyPresentation();
+
         // Clear custom presentations on string variables so IPS_SetIcon works
         // Wait, IPS_SetVariableCustomPresentation([]) didn't clear the Anzeigetyp.
         // We will just manage the CustomPresentation dynamically in UpdateCalendar!
@@ -79,6 +93,7 @@ class AWMMuenchen extends IPSModuleStrict
     {
         $url = $this->ReadPropertyString('CalendarUrl');
         if (empty($url)) {
+            $this->DA_SetAvailable(false, 'Keine ICS URL konfiguriert.');
             $this->SLogError("Keine ICS URL konfiguriert.");
             return;
         }
@@ -92,6 +107,7 @@ class AWMMuenchen extends IPSModuleStrict
             $msg = "Fehler beim Abrufen des Abfuhrkalenders für das Jahr $currentYear. Möglicherweise ist der generierte Link (cHash) abgelaufen. Bitte generiere auf der AWM Webseite einen neuen Link für das aktuelle Jahr und trage ihn in die Instanz ein.";
             $this->LogMessage($msg, KL_ERROR);
             $this->SLogError($msg);
+            $this->DA_SetAvailable(false, 'HTTP Fehler');
             return;
         }
 
@@ -182,6 +198,7 @@ class AWMMuenchen extends IPSModuleStrict
         }
         
         $this->SendDebug("AWM", "Kalender erfolgreich aktualisiert.", 0);
+        $this->DA_SetAvailable(true);
     }
 
     protected function parseICS(string $url): array
@@ -312,6 +329,12 @@ class AWMMuenchen extends IPSModuleStrict
     {
         return <<<'EOT'
 {
+    "status": [
+        { "code": 102, "icon": "active", "caption": "Aktiv" },
+        { "code": 104, "icon": "inactive", "caption": "Inaktiv (Konfiguration unvollständig)" },
+        { "code": 200, "icon": "error", "caption": "Fehler" },
+        { "code": 201, "icon": "error", "caption": "Verbindungsfehler" }
+    ],
     "elements": [
         {
             "type": "Label",

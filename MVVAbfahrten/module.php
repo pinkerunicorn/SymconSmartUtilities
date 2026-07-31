@@ -2,12 +2,23 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../libs/Trait_SmartLog.php';
+require_once __DIR__ . '/../libs/Trait_SmartHttp.php';
+require_once __DIR__ . '/../libs/Trait_DeviceAvailability.php';
+
 class MVVAbfahrten extends IPSModuleStrict
 {
+    use SmartLog_Trait;
+    use SmartHttp_Trait;
+    use DeviceAvailability_Trait;
+
     public function Create(): void
     {
         //Never delete this line!
         parent::Create();
+
+        $this->RegisterPropertyInteger('AvailabilityAlarmPriority', 0);
+        $this->DA_RegisterAvailability(900);
 
         $this->RegisterPropertyString('StationID', '91001930');
         $this->RegisterPropertyString('WantedLine', 'S 2');
@@ -42,6 +53,15 @@ class MVVAbfahrten extends IPSModuleStrict
         //Never delete this line!
         parent::ApplyChanges();
 
+        $stationID = $this->ReadPropertyString('StationID');
+        if (trim($stationID) === '') {
+            $this->SetStatus(104);
+            return;
+        }
+        $this->SetStatus(102);
+
+        $this->DA_ApplyPresentation();
+
         $this->SetTimerInterval('UpdateTimer', $this->ReadPropertyInteger('UpdateInterval') * 1000);
 
         $this->Update();
@@ -58,14 +78,15 @@ class MVVAbfahrten extends IPSModuleStrict
         }
 
         $url = 'https://efa.mvv-muenchen.de/ng/XSLT_DM_REQUEST?outputFormat=JSON&language=de&stateless=1&type_dm=stop&name_dm=' . urlencode($stationID) . '&useRealtime=1&mode=direct&limit=20';
-        $content = @file_get_contents($url);
+        $normalInterval = $this->ReadPropertyInteger('UpdateInterval');
+        $json = $this->HttpRequestWithRetry($url, 'UpdateTimer', $normalInterval);
 
-        if ($content === false) {
+        if ($json === null) {
+            $this->DA_SetAvailable(false, 'HTTP Fehler beim Abrufen der Daten.');
             $this->SendDebug('Update', 'Fehler beim Abrufen der Daten.', 0);
             return;
         }
-
-        $json = json_decode($content, true);
+        $this->DA_SetAvailable(true);
 
         $foundDeparture = false;
 

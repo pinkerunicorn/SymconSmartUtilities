@@ -22,6 +22,12 @@
             "minimum": 10
         }
     ],
+    "status": [
+        { "code": 102, "icon": "active", "caption": "Aktiv" },
+        { "code": 104, "icon": "inactive", "caption": "Inaktiv (Station ID fehlt)" },
+        { "code": 200, "icon": "error", "caption": "Fehler" },
+        { "code": 201, "icon": "error", "caption": "Verbindungsfehler" }
+    ],
     "actions": [
         {
             "type": "Button",
