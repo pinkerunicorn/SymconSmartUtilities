@@ -148,16 +148,15 @@ class AWMMuenchen extends IPSModuleStrict
         $this->SetValue('PapierHeute', $todaySummary['PapierHeute']);
         $this->SetValue('BioHeute', $todaySummary['BioHeute']);
 
-        $emojiMap = [
-            'Restmüll'=> '🗑 Restmüll',
-            'Papier'  => '📦 Papier',
-            'Bio'     => '🍂 Bio'
-        ];
-
         // Formatiere Heute-Liste
-        $heuteListeFormatted = array_map(function($t) use ($emojiMap) { return isset($emojiMap[$t]) ? $emojiMap[$t] : $t; }, $heuteListe);
-        $heuteStr = empty($heuteListeFormatted) ? "✅ Keine Leerung": implode(", ", $heuteListeFormatted);
+        $heuteStr = empty($heuteListe) ? "Keine Leerung": implode(", ", $heuteListe);
         $this->SetValue('Heute', $heuteStr);
+        
+        $heuteIcon = 'Ok';
+        if (in_array('Restmüll', $heuteListe)) $heuteIcon = 'Trash';
+        elseif (in_array('Papier', $heuteListe)) $heuteIcon = 'Notebook';
+        elseif (in_array('Bio', $heuteListe)) $heuteIcon = 'Leaf';
+        IPS_SetIcon($this->GetIDForIdent('Heute'), $heuteIcon);
         
         $heuteVesta = empty($heuteListe) ? '' : implode(', ', $heuteListe);
         $this->SetValue('VestaboardMessage', $heuteVesta);
@@ -165,12 +164,16 @@ class AWMMuenchen extends IPSModuleStrict
         // Wochen-Variablen setzen
         foreach ($weekdays as $dayName => $ts) {
             $varName = str_replace('ü', 'ue', $dayName); // Nur zur Sicherheit
-            $weekSummaryFormatted = [];
-            if (!empty($weekSummary[$dayName])) {
-                $weekSummaryFormatted = array_map(function($t) use ($emojiMap) { return isset($emojiMap[$t]) ? $emojiMap[$t] : $t; }, $weekSummary[$dayName]);
-            }
-            $val = empty($weekSummaryFormatted) ? "✅ Keine Leerung": implode(", ", $weekSummaryFormatted);
+            
+            $dayList = $weekSummary[$dayName] ?? [];
+            $val = empty($dayList) ? "Keine Leerung": implode(", ", $dayList);
             $this->SetValue($varName, $val);
+            
+            $dayIcon = 'Ok';
+            if (in_array('Restmüll', $dayList)) $dayIcon = 'Trash';
+            elseif (in_array('Papier', $dayList)) $dayIcon = 'Notebook';
+            elseif (in_array('Bio', $dayList)) $dayIcon = 'Leaf';
+            IPS_SetIcon($this->GetIDForIdent($varName), $dayIcon);
         }
         
         $this->SendDebug("AWM", "Kalender erfolgreich aktualisiert.", 0);
