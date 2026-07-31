@@ -157,10 +157,10 @@ class AWMMuenchen extends IPSModuleStrict
         $heuteStr = empty($heuteListe) ? "Keine Leerung": implode(", ", $heuteListe);
         $this->SetValue('Heute', $heuteStr);
         
-        $heuteIcon = 'Ok';
-        if (in_array('Restmüll', $heuteListe)) $heuteIcon = 'Trash';
-        elseif (in_array('Papier', $heuteListe)) $heuteIcon = 'Notebook';
-        elseif (in_array('Bio', $heuteListe)) $heuteIcon = 'Leaf';
+        $heuteIcon = 'ok';
+        if (in_array('Restmüll', $heuteListe)) $heuteIcon = 'trash';
+        elseif (in_array('Papier', $heuteListe)) $heuteIcon = 'notebook';
+        elseif (in_array('Bio', $heuteListe)) $heuteIcon = 'leaf';
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('Heute'), ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => $heuteIcon, 'DISPLAY_TYPE' => 1]);
         
         $heuteVesta = empty($heuteListe) ? '' : implode(', ', $heuteListe);
@@ -174,10 +174,10 @@ class AWMMuenchen extends IPSModuleStrict
             $val = empty($dayList) ? "Keine Leerung": implode(", ", $dayList);
             $this->SetValue($varName, $val);
             
-            $dayIcon = 'Ok';
-            if (in_array('Restmüll', $dayList)) $dayIcon = 'Trash';
-            elseif (in_array('Papier', $dayList)) $dayIcon = 'Notebook';
-            elseif (in_array('Bio', $dayList)) $dayIcon = 'Leaf';
+            $dayIcon = 'ok';
+            if (in_array('Restmüll', $dayList)) $dayIcon = 'trash';
+            elseif (in_array('Papier', $dayList)) $dayIcon = 'notebook';
+            elseif (in_array('Bio', $dayList)) $dayIcon = 'leaf';
             IPS_SetVariableCustomPresentation($this->GetIDForIdent($varName), ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => $dayIcon, 'DISPLAY_TYPE' => 1]);
         }
         
