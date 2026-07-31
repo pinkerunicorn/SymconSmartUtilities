@@ -48,17 +48,9 @@ class AWMMuenchen extends IPSModuleStrict
         parent::ApplyChanges();
 
         // Clear custom presentations on string variables so IPS_SetIcon works
-        $stringVars = ['Heute', 'VestaboardMessage', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
-        foreach ($stringVars as $ident) {
-            $id = @$this->GetIDForIdent($ident);
-            if ($id !== false) {
-                IPS_SetVariableCustomPresentation($id, []);
-                // Reset initial icon if not already set by UpdateCalendar
-                if (IPS_GetObject($id)['ObjectIcon'] == '') {
-                    IPS_SetIcon($id, 'Clock');
-                }
-            }
-        }
+        // Wait, IPS_SetVariableCustomPresentation([]) didn't clear the Anzeigetyp.
+        // We will just manage the CustomPresentation dynamically in UpdateCalendar!
+        // No need to clear them here anymore.
 
         if (!IPS_VariableProfileExists('AWM.WasteToday')) {
             IPS_CreateVariableProfile('AWM.WasteToday', 0); // 0 = Boolean
@@ -169,7 +161,7 @@ class AWMMuenchen extends IPSModuleStrict
         if (in_array('Restmüll', $heuteListe)) $heuteIcon = 'Trash';
         elseif (in_array('Papier', $heuteListe)) $heuteIcon = 'Notebook';
         elseif (in_array('Bio', $heuteListe)) $heuteIcon = 'Leaf';
-        IPS_SetIcon($this->GetIDForIdent('Heute'), $heuteIcon);
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Heute'), ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => $heuteIcon, 'DISPLAY_TYPE' => 1]);
         
         $heuteVesta = empty($heuteListe) ? '' : implode(', ', $heuteListe);
         $this->SetValue('VestaboardMessage', $heuteVesta);
@@ -186,7 +178,7 @@ class AWMMuenchen extends IPSModuleStrict
             if (in_array('Restmüll', $dayList)) $dayIcon = 'Trash';
             elseif (in_array('Papier', $dayList)) $dayIcon = 'Notebook';
             elseif (in_array('Bio', $dayList)) $dayIcon = 'Leaf';
-            IPS_SetIcon($this->GetIDForIdent($varName), $dayIcon);
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent($varName), ['PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION, 'ICON' => $dayIcon, 'DISPLAY_TYPE' => 1]);
         }
         
         $this->SendDebug("AWM", "Kalender erfolgreich aktualisiert.", 0);
