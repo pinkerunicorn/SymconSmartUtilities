@@ -2,14 +2,14 @@
     "id": "{72F50C1B-12C4-4198-B23B-9ED53A3DC1AC}",
     "name": "AWMMuenchen",
     "type": 3,
-    "vendor": "Florian Graßinger",
+    "vendor": "Florian Gra\u00dfinger",
     "aliases": [
-        "AWM München Abfallkalender"
+        "AWM M\u00fcnchen Abfallkalender"
     ],
     "parentRequirements": [],
     "childRequirements": [],
     "implemented": [],
     "prefix": "AWM",
-    "author": "Florian Graßinger",
-    "url": "https://github.com/pinkerunicorn/"
+    "author": "Florian Gra\u00dfinger",
+    "url": "https://github.com/pinkerunicorn/SymconSmartUtilities/tree/main/AWMMuenchen"
 }

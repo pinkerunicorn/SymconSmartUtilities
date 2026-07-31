@@ -2,8 +2,8 @@
     "id": "{09A99311-87CD-480B-A7B8-6DC226136CFB}",
     "name": "SmartWaterMonitor",
     "type": 3,
-    "vendor": "Florian Graßinger",
-    "author": "Florian Graßinger",
+    "vendor": "Florian Gra\u00dfinger",
+    "author": "Florian Gra\u00dfinger",
     "aliases": [
         "Water Meter"
     ],
@@ -14,6 +14,6 @@
     "implemented": [
         "{7F7632D9-FA40-4F38-8DEA-C83CD4325A32}"
     ],
-    "url": "https://github.com/pinkerunicorn/",
+    "url": "https://github.com/pinkerunicorn/SymconSmartUtilities/tree/main/SmartWaterMonitor",
     "prefix": "WATER"
 }

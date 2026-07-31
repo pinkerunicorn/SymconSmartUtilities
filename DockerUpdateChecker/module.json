@@ -2,12 +2,15 @@
     "id": "{F3A4B5C6-D7E8-4900-1122-334455667788}",
     "name": "Docker Update Checker",
     "type": 3,
-    "vendor": "Florian Graßinger",
-    "aliases": ["Symcon Docker Update Checker", "Docker Checker"],
+    "vendor": "Florian Gra\u00dfinger",
+    "aliases": [
+        "Symcon Docker Update Checker",
+        "Docker Checker"
+    ],
     "parentRequirements": [],
     "childRequirements": [],
     "implemented": [],
     "prefix": "SDU",
-    "author": "Florian Graßinger",
-    "url": "https://github.com/pinkerunicorn/SymconSmartUtilities"
+    "author": "Florian Gra\u00dfinger",
+    "url": "https://github.com/pinkerunicorn/SymconSmartUtilities/tree/main/DockerUpdateChecker"
 }
