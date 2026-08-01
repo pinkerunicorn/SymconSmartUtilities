@@ -76,7 +76,7 @@ class MVVAbfahrten extends IPSModuleStrict
             return;
         }
 
-        $url = 'https://efa.mvv-muenchen.de/ng/XSLT_DM_REQUEST?outputFormat=JSON&language=de&stateless=1&type_dm=stop&name_dm=' . urlencode($stationID) . '&useRealtime=1&mode=direct&limit=20';
+        $url = 'https://efa.mvv-muenchen.de/ng/XSLT_DM_REQUEST?outputFormat=JSON&language=de&stateless=1&type_dm=stop&name_dm=' . urlencode($stationID) . '&useRealtime=1&mode=direct&limit=100';
         $normalInterval = $this->ReadPropertyInteger('UpdateInterval');
         $json = $this->HttpRequestWithRetry($url, 'UpdateTimer', $normalInterval);
 
