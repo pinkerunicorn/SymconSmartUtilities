@@ -68,10 +68,10 @@
             to { stroke-dashoffset: 0; }
         }
 
-        .label-name { font-size: 14px; font-weight: 600; fill: var(--text-color); text-anchor: middle; }
-        .label-value { font-size: 16px; font-weight: bold; fill: #fff; text-anchor: middle; }
-        .label-cost { font-size: 12px; fill: var(--text-muted); text-anchor: middle; }
-        .central-label-value { font-size: 18px; font-weight: bold; fill: #fff; text-anchor: middle; }
+        .label-name { font-size: 14px; font-weight: 600; fill: var(--text-color); text-anchor: middle; paint-order: stroke; stroke: var(--bg-color); stroke-width: 3px; stroke-linecap: round; stroke-linejoin: round; }
+        .label-value { font-size: 16px; font-weight: bold; fill: #fff; text-anchor: middle; paint-order: stroke; stroke: var(--bg-color); stroke-width: 3px; stroke-linecap: round; stroke-linejoin: round; }
+        .label-cost { font-size: 12px; fill: var(--text-muted); text-anchor: middle; paint-order: stroke; stroke: var(--bg-color); stroke-width: 3px; stroke-linecap: round; stroke-linejoin: round; }
+        .central-label-value { font-size: 18px; font-weight: bold; fill: #fff; text-anchor: middle; paint-order: stroke; stroke: var(--bg-color); stroke-width: 4px; stroke-linecap: round; stroke-linejoin: round; }
         
         .empty-message { text-align: center; color: var(--text-muted); padding: 20px; }
     </style>
