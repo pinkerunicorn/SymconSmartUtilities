@@ -76,7 +76,20 @@ class MVVAbfahrten extends IPSModuleStrict
             return;
         }
 
-        $url = 'https://efa.mvv-muenchen.de/ng/XSLT_DM_REQUEST?outputFormat=JSON&language=de&stateless=1&type_dm=stop&name_dm=' . urlencode($stationID) . '&useRealtime=1&mode=direct&limit=100';
+        $motFilter = '';
+        $wUpper = strtoupper(trim($wantedLine));
+        if (str_starts_with($wUpper, 'S')) {
+            $motFilter = '&includedMeans=checkbox&inclMOT_1=on';
+        } elseif (str_starts_with($wUpper, 'U')) {
+            $motFilter = '&includedMeans=checkbox&inclMOT_2=on';
+        } elseif (str_starts_with($wUpper, 'TRAM')) {
+            $motFilter = '&includedMeans=checkbox&inclMOT_4=on';
+        } else {
+            // Busse und ExpressBusse
+            $motFilter = '&includedMeans=checkbox&inclMOT_5=on&inclMOT_7=on';
+        }
+
+        $url = 'https://efa.mvv-muenchen.de/ng/XSLT_DM_REQUEST?outputFormat=JSON&language=de&stateless=1&type_dm=stop&name_dm=' . urlencode($stationID) . '&useRealtime=1&mode=direct&limit=100' . $motFilter;
         $normalInterval = $this->ReadPropertyInteger('UpdateInterval');
         $json = $this->HttpRequestWithRetry($url, 'UpdateTimer', $normalInterval);
 
