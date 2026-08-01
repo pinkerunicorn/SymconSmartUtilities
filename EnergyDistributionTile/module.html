@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Energy Distribution</title>
+    <style>
+        :root {
+            --bg-color: #1e1e28;
+            --house-color: #ff4785; /* Pink for house */
+            --consumer-color: #00d2ff; /* Blue for consumers */
+            --producer-color: #ffaa00; /* Orange for producers */
+            --line-color: rgba(255, 255, 255, 0.15);
+            --text-color: #e0e0e0;
+            --text-muted: #888899;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: transparent; /* Symcon handles tile background, but we can set a fallback */
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        #dashboard-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 800px;
+            max-height: 800px;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        /* SVG Styles */
+        .node-bg {
+            fill: #2a2a35;
+            stroke-width: 3px;
+        }
+
+        .node-icon {
+            fill: none;
+            stroke: #fff;
+            stroke-width: 2px;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .central-node .node-bg {
+            fill: var(--house-color);
+            stroke: none;
+        }
+
+        .central-node .node-icon {
+            stroke: #fff;
+            stroke-width: 2.5px;
+        }
+
+        .consumer-node .node-bg {
+            stroke: var(--consumer-color);
+        }
+
+        .producer-node .node-bg {
+            stroke: var(--producer-color);
+        }
+
+        .connection-line {
+            fill: none;
+            stroke: var(--line-color);
+            stroke-width: 4px;
+        }
+
+        /* Animated Energy Flow Particles */
+        .energy-flow {
+            fill: none;
+            stroke-width: 4px;
+            stroke-linecap: round;
+            stroke-dasharray: 8 20;
+            /* Animation speed is controlled dynamically via JS (style="animation-duration: Xs") */
+            animation: flow linear infinite;
+        }
+        
+        .consumer-flow {
+            stroke: var(--consumer-color);
+        }
+        
+        .producer-flow {
+            stroke: var(--producer-color);
+            /* Reverse flow for producers */
+            animation-direction: reverse;
+        }
+
+        @keyframes flow {
+            from { stroke-dashoffset: 28; } /* 8 + 20 */
+            to { stroke-dashoffset: 0; }
+        }
+
+        /* Text Styles inside SVG */
+        .label-name {
+            font-size: 14px;
+            font-weight: 600;
+            fill: var(--text-color);
+            text-anchor: middle;
+        }
+
+        .label-value {
+            font-size: 16px;
+            font-weight: bold;
+            fill: #fff;
+            text-anchor: middle;
+        }
+        
+        .label-cost {
+            font-size: 12px;
+            fill: var(--text-muted);
+            text-anchor: middle;
+        }
+
+        .central-label-value {
+            font-size: 18px;
+            font-weight: bold;
+            fill: #fff;
+            text-anchor: middle;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="dashboard-container">
+        <!-- SVG will be generated here by JS -->
+    </div>
+
+    <script>
+        // 1. Initial Data from PHP
+        let rawData = '__INITIAL_DATA__';
+        let config = { house: {}, consumers: [] };
+        
+        try {
+            // Replace HTML entities if necessary (Symcon might htmlspecialchars the JSON)
+            const decoded = rawData.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+            config = JSON.parse(decoded);
+        } catch (e) {
+            console.error("Error parsing initial data:", e);
+        }
+
+        // 2. WebSocket Listener for Live Updates
+        window.addEventListener("message", function(event) {
+            if (event.data) {
+                try {
+                    let newData;
+                    if (typeof event.data === 'string') {
+                        newData = JSON.parse(event.data);
+                    } else {
+                        newData = event.data; // already an object
+                    }
+                    config = newData;
+                    updateUI(); // Re-render with new values
+                } catch(e) {
+                    console.error("Error processing WebSocket update:", e);
+                }
+            }
+        });
+
+        // 3. SVG Generation Logic
+        const SVG_NS = "http://www.w3.org/2000/svg";
+        const VIEWBOX_SIZE = 600;
+        const CENTER_X = VIEWBOX_SIZE / 2;
+        const CENTER_Y = VIEWBOX_SIZE / 2;
+        const RADIUS = 200; // Distance of consumers from center
+
+        function renderDashboard() {
+            const container = document.getElementById('dashboard-container');
+            container.innerHTML = '';
+
+            const svg = document.createElementNS(SVG_NS, "svg");
+            svg.setAttribute("viewBox", `0 0 ${VIEWBOX_SIZE} ${VIEWBOX_SIZE}`);
+            svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+
+            // Groups to keep z-index order (lines below nodes)
+            const layerLines = document.createElementNS(SVG_NS, "g");
+            const layerNodes = document.createElementNS(SVG_NS, "g");
+            svg.appendChild(layerLines);
+            svg.appendChild(layerNodes);
+
+            // Calculate positions for subnodes
+            const numNodes = config.consumers.length;
+            
+            // Start at top (270 degrees)
+            let startAngle = -Math.PI / 2; 
+            
+            config.consumers.forEach((consumer, index) => {
+                // Distribute evenly around the circle
+                // If only a few nodes, maybe spread them on the top half? 
+                // Full circle is safest for up to 8 nodes.
+                const angle = startAngle + (index * (2 * Math.PI / numNodes));
+                const cx = CENTER_X + RADIUS * Math.cos(angle);
+                const cy = CENTER_Y + RADIUS * Math.sin(angle);
+
+                // 1. Draw connection line (Background)
+                const lineBg = document.createElementNS(SVG_NS, "line");
+                lineBg.setAttribute("x1", CENTER_X);
+                lineBg.setAttribute("y1", CENTER_Y);
+                lineBg.setAttribute("x2", cx);
+                lineBg.setAttribute("y2", cy);
+                lineBg.setAttribute("class", "connection-line");
+                layerLines.appendChild(lineBg);
+
+                // 2. Draw animated flow line (Foreground)
+                if (consumer.consumption > 0) {
+                    const lineFlow = document.createElementNS(SVG_NS, "line");
+                    lineFlow.setAttribute("x1", CENTER_X);
+                    lineFlow.setAttribute("y1", CENTER_Y);
+                    lineFlow.setAttribute("x2", cx);
+                    lineFlow.setAttribute("y2", cy);
+                    
+                    const isProducer = consumer.type === 1;
+                    lineFlow.setAttribute("class", `energy-flow ${isProducer ? 'producer-flow' : 'consumer-flow'}`);
+                    
+                    // Dynamic speed based on consumption (min 0.5s, max 3s)
+                    // High consumption = fast (low duration). Low consumption = slow (high duration).
+                    // Assuming max typical value is ~5 kWh for speed mapping
+                    const normalized = Math.min(consumer.consumption / 5.0, 1.0);
+                    const duration = 3.0 - (normalized * 2.5); // 0.5s to 3.0s
+                    
+                    lineFlow.style.animationDuration = `${duration}s`;
+                    layerLines.appendChild(lineFlow);
+                }
+
+                // 3. Draw SubNode
+                const nodeGroup = document.createElementNS(SVG_NS, "g");
+                const isProducer = consumer.type === 1;
+                nodeGroup.setAttribute("class", isProducer ? "producer-node" : "consumer-node");
+                
+                // Circle
+                const circle = document.createElementNS(SVG_NS, "circle");
+                circle.setAttribute("cx", cx);
+                circle.setAttribute("cy", cy);
+                circle.setAttribute("r", 35);
+                circle.setAttribute("class", "node-bg");
+                nodeGroup.appendChild(circle);
+
+                // Icon (Lightning)
+                const icon = document.createElementNS(SVG_NS, "path");
+                icon.setAttribute("d", "M-6,-12 L-10,2 L-2,2 L-6,14 L8,-2 L0,-2 Z"); // centered lightning
+                icon.setAttribute("transform", `translate(${cx}, ${cy}) scale(1.3)`);
+                icon.setAttribute("class", "node-icon");
+                nodeGroup.appendChild(icon);
+
+                // Labels
+                // We offset labels based on position to avoid overlapping with lines if possible
+                // For simplicity, we put text BELOW the circle for bottom nodes, and ABOVE for top nodes
+                const isTopHalf = cy < CENTER_Y;
+                const labelYOffset = isTopHalf ? -55 : 55;
+                const textDir = isTopHalf ? -1 : 1;
+                
+                const textGroup = document.createElementNS(SVG_NS, "text");
+                textGroup.setAttribute("x", cx);
+                textGroup.setAttribute("y", cy + labelYOffset);
+                
+                // Name
+                const tspanName = document.createElementNS(SVG_NS, "tspan");
+                tspanName.setAttribute("x", cx);
+                tspanName.setAttribute("dy", 0);
+                tspanName.setAttribute("class", "label-name");
+                tspanName.textContent = consumer.name;
+                textGroup.appendChild(tspanName);
+
+                // Value (kWh)
+                const tspanValue = document.createElementNS(SVG_NS, "tspan");
+                tspanValue.setAttribute("x", cx);
+                tspanValue.setAttribute("dy", textDir * 20); // move down or up
+                tspanValue.setAttribute("class", "label-value");
+                tspanValue.textContent = consumer.consumption.toFixed(2) + " kWh";
+                textGroup.appendChild(tspanValue);
+                
+                // Cost (€)
+                if (consumer.cost !== undefined && consumer.cost !== null) {
+                    const tspanCost = document.createElementNS(SVG_NS, "tspan");
+                    tspanCost.setAttribute("x", cx);
+                    tspanCost.setAttribute("dy", textDir * 18);
+                    tspanCost.setAttribute("class", "label-cost");
+                    tspanCost.textContent = `(${consumer.cost.toFixed(2)} €)`;
+                    textGroup.appendChild(tspanCost);
+                }
+                
+                // Re-arrange so they stack nicely
+                if(isTopHalf) {
+                    textGroup.insertBefore(tspanCost, textGroup.firstChild);
+                    textGroup.insertBefore(tspanValue, textGroup.firstChild);
+                    textGroup.insertBefore(tspanName, textGroup.firstChild);
+                    // fix dys
+                    tspanName.setAttribute("dy", 0);
+                    tspanValue.setAttribute("dy", 20);
+                    tspanCost.setAttribute("dy", 18);
+                }
+
+                nodeGroup.appendChild(textGroup);
+                layerNodes.appendChild(nodeGroup);
+            });
+
+            // 4. Draw Central House Node
+            const centerGroup = document.createElementNS(SVG_NS, "g");
+            centerGroup.setAttribute("class", "central-node");
+            
+            // House Hexagon/Circle Background
+            const centerBg = document.createElementNS(SVG_NS, "circle");
+            centerBg.setAttribute("cx", CENTER_X);
+            centerBg.setAttribute("cy", CENTER_Y);
+            centerBg.setAttribute("r", 45);
+            centerBg.setAttribute("class", "node-bg");
+            centerGroup.appendChild(centerBg);
+
+            // House Icon
+            const houseIcon = document.createElementNS(SVG_NS, "path");
+            houseIcon.setAttribute("d", "M0,-20 L22,0 L16,0 L16,16 L4,16 L4,6 L-4,6 L-4,16 L-16,16 L-16,0 L-22,0 Z");
+            houseIcon.setAttribute("transform", `translate(${CENTER_X}, ${CENTER_Y}) scale(1.2)`);
+            houseIcon.setAttribute("class", "node-icon");
+            centerGroup.appendChild(houseIcon);
+
+            // House Labels
+            const centerTextGroup = document.createElementNS(SVG_NS, "text");
+            centerTextGroup.setAttribute("x", CENTER_X);
+            centerTextGroup.setAttribute("y", CENTER_Y + 65); // Below center
+            
+            const cName = document.createElementNS(SVG_NS, "tspan");
+            cName.setAttribute("x", CENTER_X);
+            cName.setAttribute("dy", 0);
+            cName.setAttribute("class", "label-name");
+            cName.textContent = config.house.name || "Haus";
+            centerTextGroup.appendChild(cName);
+            
+            const cVal = document.createElementNS(SVG_NS, "tspan");
+            cVal.setAttribute("x", CENTER_X);
+            cVal.setAttribute("dy", 22);
+            cVal.setAttribute("class", "central-label-value");
+            cVal.textContent = (config.house.consumption || 0).toFixed(2) + " kWh";
+            centerTextGroup.appendChild(cVal);
+            
+            if (config.house.cost !== undefined && config.house.cost !== null) {
+                const cCost = document.createElementNS(SVG_NS, "tspan");
+                cCost.setAttribute("x", CENTER_X);
+                cCost.setAttribute("dy", 18);
+                cCost.setAttribute("class", "label-cost");
+                cCost.textContent = `(${(config.house.cost || 0).toFixed(2)} €)`;
+                centerTextGroup.appendChild(cCost);
+            }
+
+            centerGroup.appendChild(centerTextGroup);
+            layerNodes.appendChild(centerGroup);
+
+            container.appendChild(svg);
+        }
+
+        function updateUI() {
+            // In a more complex app, we would only update the text and animation speeds.
+            // Since this SVG is lightweight, redrawing it fully is very fast and prevents stale state issues.
+            renderDashboard();
+        }
+
+        // Init
+        if (config.consumers) {
+            updateUI();
+        }
+
+    </script>
+</body>
+</html>
