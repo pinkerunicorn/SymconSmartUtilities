@@ -16,6 +16,11 @@
             "name": "UpdateInterval",
             "caption": "Prüf-Intervall (Sekunden)",
             "minimum": 3600
+        },
+        {
+            "type": "SelectScript",
+            "name": "UpdateScript",
+            "caption": "Update-Skript (wird bei Klick ausgeführt)"
         }
     ],
     "actions": [
