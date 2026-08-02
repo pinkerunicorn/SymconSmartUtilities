@@ -94,9 +94,21 @@ class MVVAbfahrten extends IPSModuleStrict
         $json = $this->HttpRequestWithRetry($url, 'UpdateTimer', $normalInterval);
 
         if ($json === null) {
-            $this->DA_SetAvailable(false, 'HTTP Fehler beim Abrufen der Daten.');
+            $failures = $this->SH_GetConsecutiveFailures();
+            if ($failures >= 3) {
+                if ($this->DA_IsAvailable()) {
+                    $this->DA_SetAvailable(false, 'HTTP Fehler beim Abrufen der Daten (' . $failures . ' Fehlversuche).');
+                    $this->LogMessage('MVV Abfahrten ist offline nach ' . $failures . ' HTTP-Fehlversuchen.', KL_ERROR);
+                }
+            } else {
+                $this->LogMessage('HTTP Fehler beim Abrufen der Daten (Versuch ' . $failures . '/3).', KL_WARNING);
+            }
             $this->SendDebug('Update', 'Fehler beim Abrufen der Daten.', 0);
             return;
+        }
+
+        if (!$this->DA_IsAvailable()) {
+            $this->LogMessage('MVV Abfahrten ist wieder online.', KL_MESSAGE);
         }
         $this->DA_SetAvailable(true);
 
