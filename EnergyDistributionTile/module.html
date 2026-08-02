@@ -193,7 +193,7 @@
                 tspanValue.setAttribute("x", cx);
                 tspanValue.setAttribute("dy", 20);
                 tspanValue.setAttribute("class", "label-value");
-                tspanValue.textContent = (consumer.consumption || 0).toFixed(2) + " kWh";
+                tspanValue.textContent = Math.round((consumer.consumption || 0) * 1000) + " Wh";
                 textGroup.appendChild(tspanValue);
                 
                 if (hasCost) {
@@ -240,7 +240,7 @@
             cVal.setAttribute("x", CENTER_X);
             cVal.setAttribute("dy", 22);
             cVal.setAttribute("class", "central-label-value");
-            cVal.textContent = (config.house.consumption || 0).toFixed(2) + " kWh";
+            cVal.textContent = Math.round((config.house.consumption || 0) * 1000) + " Wh";
             centerTextGroup.appendChild(cVal);
             
             if (config.house.cost !== undefined && config.house.cost !== null) {
