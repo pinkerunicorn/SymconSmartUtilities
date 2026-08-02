@@ -20,6 +20,7 @@ class DockerUpdateChecker extends IPSModuleStrict
 
         $this->RegisterPropertyString('Channel', 'stable');
         $this->RegisterPropertyInteger('UpdateInterval', 21600); // Standardmäßig alle 6 Stunden prüfen
+        $this->RegisterPropertyInteger('UpdateScript', 0);
 
         $this->RegisterTimer('UpdateTimer', 0, 'SDU_Update($_IPS[\'TARGET\']);');
 
@@ -42,6 +43,14 @@ class DockerUpdateChecker extends IPSModuleStrict
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Warning'
         ], 4);
+        
+        $this->RegisterVariableInteger('StartUpdate', 'Update durchführen', [
+            'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
+            'OPTIONS' => json_encode([
+                ['Value' => 1, 'Caption' => 'Jetzt aktualisieren', 'IconActive' => true, 'IconValue' => 'Gear', 'Color' => 0xFF0000]
+            ])
+        ], 5);
+        $this->EnableAction('StartUpdate');
     }
 
     public function ApplyChanges(): void
@@ -122,12 +131,38 @@ class DockerUpdateChecker extends IPSModuleStrict
                 $this->SetValue('LocalBuild', $localTimestamp);
                 $this->SetValue('DockerVersion', $dockerTimestamp);
                 $this->SetValue('UpdateAvailable', $updateAvailable);
+                
+                if ($updateAvailable) {
+                    IPS_SetHidden($this->GetIDForIdent('StartUpdate'), false);
+                    IPS_SetDisabled($this->GetIDForIdent('StartUpdate'), false);
+                } else {
+                    IPS_SetHidden($this->GetIDForIdent('StartUpdate'), true);
+                    IPS_SetDisabled($this->GetIDForIdent('StartUpdate'), true);
+                }
             } else {
                 $this->SendDebug('Update', 'Fehler: Weder "images.last_pushed" noch "last_updated" im JSON gefunden.', 0);
             }
         } else {
             $this->DA_SetAvailable(false, 'Fehler bei der API-Abfrage');
             $this->SendDebug('Update', 'Fehler bei der API-Abfrage.', 0);
+        }
+    }
+
+    public function RequestAction($Ident, $Value): void
+    {
+        switch ($Ident) {
+            case 'StartUpdate':
+                if ($Value == 1) {
+                    $scriptId = $this->ReadPropertyInteger('UpdateScript');
+                    if ($scriptId > 0 && @IPS_ObjectExists($scriptId) && IPS_GetObject($scriptId)['ObjectType'] == 3) {
+                        $this->SendDebug('UpdateAction', 'Starte Update-Skript: ' . $scriptId, 0);
+                        IPS_RunScript($scriptId);
+                    } else {
+                        $this->SendDebug('UpdateAction', 'Fehler: Kein gültiges Update-Skript in der Konfiguration hinterlegt!', 0);
+                        echo 'Fehler: Kein gültiges Update-Skript in der Konfiguration hinterlegt!';
+                    }
+                }
+                break;
         }
     }
 }
