@@ -174,8 +174,9 @@
                 nodeGroup.appendChild(icon);
 
                 const isTopHalf = cy < CENTER_Y;
-                const labelYOffset = isTopHalf ? -55 : 55;
-                const textDir = isTopHalf ? -1 : 1;
+                const hasCost = consumer.cost !== undefined && consumer.cost !== null;
+                // For top half, we need to shift the starting y position higher so all text lines clear the circle
+                const labelYOffset = isTopHalf ? (hasCost ? -85 : -65) : 55;
                 
                 const textGroup = document.createElementNS(SVG_NS, "text");
                 textGroup.setAttribute("x", cx);
@@ -190,27 +191,18 @@
 
                 const tspanValue = document.createElementNS(SVG_NS, "tspan");
                 tspanValue.setAttribute("x", cx);
-                tspanValue.setAttribute("dy", textDir * 20);
+                tspanValue.setAttribute("dy", 20);
                 tspanValue.setAttribute("class", "label-value");
                 tspanValue.textContent = (consumer.consumption || 0).toFixed(2) + " kWh";
                 textGroup.appendChild(tspanValue);
                 
-                if (consumer.cost !== undefined && consumer.cost !== null) {
+                if (hasCost) {
                     const tspanCost = document.createElementNS(SVG_NS, "tspan");
                     tspanCost.setAttribute("x", cx);
-                    tspanCost.setAttribute("dy", textDir * 18);
+                    tspanCost.setAttribute("dy", 18);
                     tspanCost.setAttribute("class", "label-cost");
                     tspanCost.textContent = `(${(consumer.cost || 0).toFixed(2)} €)`;
                     textGroup.appendChild(tspanCost);
-                }
-                
-                if(isTopHalf) {
-                    textGroup.insertBefore(textGroup.lastChild, textGroup.firstChild);
-                    textGroup.insertBefore(textGroup.lastChild, textGroup.firstChild);
-                    textGroup.insertBefore(textGroup.lastChild, textGroup.firstChild);
-                    tspanName.setAttribute("dy", 0);
-                    tspanValue.setAttribute("dy", 20);
-                    if(textGroup.childNodes.length === 3) textGroup.lastChild.setAttribute("dy", 18);
                 }
 
                 nodeGroup.appendChild(textGroup);

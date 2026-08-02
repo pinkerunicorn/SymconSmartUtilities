@@ -60,44 +60,46 @@ class Energierechner extends IPSModuleStrict
         }
         // ---------------------------------
 
-        // Maintain Variables
         $enableWeek = $this->ReadPropertyBoolean('EnableWeek');
         $enableMonth = $this->ReadPropertyBoolean('EnableMonth');
         $enableYear = $this->ReadPropertyBoolean('EnableYear');
 
-        $this->MaintainVariable('ConsumptionDay', 'Verbrauch (Heute)', 2, '', 10, true);
-        $this->MaintainVariable('CostDay', 'Kosten (Heute)', 2, '', 50, true);
-
-        $this->MaintainVariable('ConsumptionWeek', 'Verbrauch (Woche)', 2, '', 20, $enableWeek);
-        $this->MaintainVariable('CostWeek', 'Kosten (Woche)', 2, '', 60, $enableWeek);
-
-        $this->MaintainVariable('ConsumptionMonth', 'Verbrauch (Monat)', 2, '', 30, $enableMonth);
-        $this->MaintainVariable('CostMonth', 'Kosten (Monat)', 2, '', 70, $enableMonth);
-
-        $this->MaintainVariable('ConsumptionYear', 'Verbrauch (Jahr)', 2, '', 40, $enableYear);
-        $this->MaintainVariable('CostYear', 'Kosten (Jahr)', 2, '', 80, $enableYear);
-
-        // Apply Custom Presentations instead of Legacy Profiles
-        $periods = [
-            'Day' => true,
-            'Week' => $enableWeek,
-            'Month' => $enableMonth,
-            'Year' => $enableYear
+        $presCons = [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'SUFFIX' => ' kWh',
+            'ICON' => 'Electricity'
+        ];
+        $presCost = [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'SUFFIX' => ' €',
+            'ICON' => 'Euro'
         ];
 
-        foreach ($periods as $period => $enabled) {
-            if ($enabled) {
-                IPS_SetVariableCustomPresentation($this->GetIDForIdent('Consumption' . $period), [
-                    'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                    'SUFFIX' => ' kWh',
-                    'ICON' => 'Electricity'
-                ]);
-                IPS_SetVariableCustomPresentation($this->GetIDForIdent('Cost' . $period), [
-                    'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                    'SUFFIX' => ' €',
-                    'ICON' => 'Euro'
-                ]);
-            }
+        $this->RegisterVariableFloat('ConsumptionDay', 'Verbrauch (Heute)', $presCons, 10);
+        $this->RegisterVariableFloat('CostDay', 'Kosten (Heute)', $presCost, 50);
+
+        if ($enableWeek) {
+            $this->RegisterVariableFloat('ConsumptionWeek', 'Verbrauch (Woche)', $presCons, 20);
+            $this->RegisterVariableFloat('CostWeek', 'Kosten (Woche)', $presCost, 60);
+        } else {
+            $this->UnregisterVariable('ConsumptionWeek');
+            $this->UnregisterVariable('CostWeek');
+        }
+
+        if ($enableMonth) {
+            $this->RegisterVariableFloat('ConsumptionMonth', 'Verbrauch (Monat)', $presCons, 30);
+            $this->RegisterVariableFloat('CostMonth', 'Kosten (Monat)', $presCost, 70);
+        } else {
+            $this->UnregisterVariable('ConsumptionMonth');
+            $this->UnregisterVariable('CostMonth');
+        }
+
+        if ($enableYear) {
+            $this->RegisterVariableFloat('ConsumptionYear', 'Verbrauch (Jahr)', $presCons, 40);
+            $this->RegisterVariableFloat('CostYear', 'Kosten (Jahr)', $presCost, 80);
+        } else {
+            $this->UnregisterVariable('ConsumptionYear');
+            $this->UnregisterVariable('CostYear');
         }
 
         // Set Timer
