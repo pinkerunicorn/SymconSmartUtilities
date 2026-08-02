@@ -65,14 +65,25 @@ class AWMMuenchen extends IPSModuleStrict
         // We will just manage the CustomPresentation dynamically in UpdateCalendar!
         // No need to clear them here anymore.
 
-        if (!IPS_VariableProfileExists('AWM.WasteToday')) {
-            IPS_CreateVariableProfile('AWM.WasteToday', 0); // 0 = Boolean
-        }
-        IPS_SetVariableProfileAssociation('AWM.WasteToday', false, 'Nein', 'Trash', -1);
-        IPS_SetVariableProfileAssociation('AWM.WasteToday', true, 'Heute!', 'Trash', 0xFFCC00);
-
+        $wasteOptions = json_encode([
+            ['Value' => false, 'Caption' => 'Nein', 'IconValue' => 'Trash', 'IconActive' => true,
+             'ColorActive' => false, 'ColorDisplay' => -1, 'ContentColorActive' => false,
+             'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => -1],
+            ['Value' => true, 'Caption' => 'Heute!', 'IconValue' => 'Trash', 'IconActive' => true,
+             'ColorActive' => true, 'ColorDisplay' => 0xFFCC00, 'ContentColorActive' => false,
+             'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFFCC00]
+        ]);
         foreach (['RestmuellHeute', 'PapierHeute', 'BioHeute'] as $ident) {
-            IPS_SetVariableCustomProfile($this->GetIDForIdent($ident), 'AWM.WasteToday');
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent($ident), [
+                'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+                'ICON' => 'Trash',
+                'COLOR' => -1,
+                'CONTENT_COLOR' => -1,
+                'DISPLAY_TYPE' => 0,
+                'PREVIEW_STYLE' => 1,
+                'SHOW_PREVIEW' => true,
+                'OPTIONS' => $wasteOptions
+            ]);
         }
 
         $interval = $this->ReadPropertyInteger('UpdateInterval');

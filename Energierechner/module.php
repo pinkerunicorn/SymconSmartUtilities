@@ -78,29 +78,25 @@ class Energierechner extends IPSModuleStrict
         $this->MaintainVariable('CostYear', 'Kosten (Jahr)', 2, '', 80, $enableYear);
 
         // Apply Custom Presentations instead of Legacy Profiles
-        if (function_exists('IPS_SetVariableCustomPresentation')) {
-            $presentationType = defined('VARIABLE_PRESENTATION_VALUE_PRESENTATION') ? VARIABLE_PRESENTATION_VALUE_PRESENTATION : 1;
-            
-            $periods = [
-                'Day' => true,
-                'Week' => $enableWeek,
-                'Month' => $enableMonth,
-                'Year' => $enableYear
-            ];
+        $periods = [
+            'Day' => true,
+            'Week' => $enableWeek,
+            'Month' => $enableMonth,
+            'Year' => $enableYear
+        ];
 
-            foreach ($periods as $period => $enabled) {
-                if ($enabled) {
-                    IPS_SetVariableCustomPresentation($this->GetIDForIdent('Consumption' . $period), [
-                        'PRESENTATION' => $presentationType,
-                        'SUFFIX' => ' kWh',
-                        'ICON' => 'Electricity'
-                    ]);
-                    IPS_SetVariableCustomPresentation($this->GetIDForIdent('Cost' . $period), [
-                        'PRESENTATION' => $presentationType,
-                        'SUFFIX' => ' €',
-                        'ICON' => 'Euro'
-                    ]);
-                }
+        foreach ($periods as $period => $enabled) {
+            if ($enabled) {
+                IPS_SetVariableCustomPresentation($this->GetIDForIdent('Consumption' . $period), [
+                    'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                    'SUFFIX' => ' kWh',
+                    'ICON' => 'Electricity'
+                ]);
+                IPS_SetVariableCustomPresentation($this->GetIDForIdent('Cost' . $period), [
+                    'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                    'SUFFIX' => ' €',
+                    'ICON' => 'Euro'
+                ]);
             }
         }
 
