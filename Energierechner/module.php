@@ -19,6 +19,7 @@ class Energierechner extends IPSModuleStrict
         $this->RegisterPropertyBoolean('EnableWeek', true);
         $this->RegisterPropertyBoolean('EnableMonth', true);
         $this->RegisterPropertyBoolean('EnableYear', true);
+        $this->RegisterPropertyBoolean('EnableAllTime', false);
 
         // Timer
         $this->RegisterTimer('UpdateTimer', 0, 'EC_UpdateCalculator($_IPS[\'TARGET\']);');
@@ -63,6 +64,7 @@ class Energierechner extends IPSModuleStrict
         $enableWeek = $this->ReadPropertyBoolean('EnableWeek');
         $enableMonth = $this->ReadPropertyBoolean('EnableMonth');
         $enableYear = $this->ReadPropertyBoolean('EnableYear');
+        $enableAllTime = $this->ReadPropertyBoolean('EnableAllTime');
 
         $presCons = [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
@@ -102,6 +104,14 @@ class Energierechner extends IPSModuleStrict
             $this->UnregisterVariable('CostYear');
         }
 
+        if ($enableAllTime) {
+            $this->RegisterVariableFloat('ConsumptionAllTime', 'Verbrauch (Gesamt)', $presCons, 45);
+            $this->RegisterVariableFloat('CostAllTime', 'Kosten (Gesamt)', $presCost, 85);
+        } else {
+            $this->UnregisterVariable('ConsumptionAllTime');
+            $this->UnregisterVariable('CostAllTime');
+        }
+
         // Set Timer
         $interval = $this->ReadPropertyInteger('UpdateInterval');
         $this->SetTimerInterval('UpdateTimer', $interval * 60 * 1000);
@@ -134,6 +144,7 @@ class Energierechner extends IPSModuleStrict
         $enableWeek = $this->ReadPropertyBoolean('EnableWeek');
         $enableMonth = $this->ReadPropertyBoolean('EnableMonth');
         $enableYear = $this->ReadPropertyBoolean('EnableYear');
+        $enableAllTime = $this->ReadPropertyBoolean('EnableAllTime');
 
         if ($sourceVar == 0 || !IPS_VariableExists($sourceVar)) {
             $this->SetStatus(104); // Instanz ist inaktiv (Variable fehlt)
@@ -208,6 +219,35 @@ class Energierechner extends IPSModuleStrict
             $this->SetValue('ConsumptionYear', $consumptionYear);
             $this->SetValue('CostYear', $costYear);
         }
+
+        // All-Time Calculation
+        if ($enableAllTime) {
+            // AggregationType 4 = Yearly, Fetch all years since timestamp 0
+            $allTimeAggr = @AC_GetAggregatedValues($archiveID, $sourceVar, 4, 0, time(), 0);
+            $consumptionAllTime = 0.0;
+            $allTimeBasePrice = 0.0;
+
+            if (is_array($allTimeAggr) && count($allTimeAggr) > 0) {
+                $oldestTimestamp = time();
+                foreach ($allTimeAggr as $aggr) {
+                    $consumptionAllTime += (float)$aggr['Avg'];
+                    if ($aggr['TimeStamp'] < $oldestTimestamp) {
+                        $oldestTimestamp = $aggr['TimeStamp'];
+                    }
+                }
+
+                // If base price is included, calculate it based on the number of days since the oldest record
+                if ($includeBasePrice && $basePriceYear > 0) {
+                    $daysSinceStart = (time() - $oldestTimestamp) / 86400;
+                    if ($daysSinceStart < 1) $daysSinceStart = 1; // At least one day
+                    $allTimeBasePrice = ($basePriceYear / 365.25) * $daysSinceStart;
+                }
+            }
+
+            $costAllTime = ($consumptionAllTime * $energyPriceEuro) + $allTimeBasePrice;
+            $this->SetValue('ConsumptionAllTime', $consumptionAllTime);
+            $this->SetValue('CostAllTime', $costAllTime);
+        }
     }
 
     public function GetConfigurationForm(): string
@@ -273,6 +313,11 @@ class Energierechner extends IPSModuleStrict
             "type": "CheckBox",
             "name": "EnableYear",
             "caption": "Verbrauch/Kosten für Jahr berechnen"
+        },
+        {
+            "type": "CheckBox",
+            "name": "EnableAllTime",
+            "caption": "Verbrauch/Kosten seit Beginn (All-Time) berechnen"
         },
         {
             "type": "NumberSpinner",
