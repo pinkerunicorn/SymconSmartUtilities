@@ -102,29 +102,55 @@ class EnergyDistributionTile extends IPSModuleStrict
         $houseConsID = $this->ReadPropertyInteger('HouseConsumptionID');
         $houseCostID = $this->ReadPropertyInteger('HouseCostID');
 
+        $houseCons = $this->SafeGetValue($houseConsID);
+        $houseCost = $this->SafeGetValue($houseCostID);
+        
         $data = [
             'house' => [
                 'name' => $this->ReadPropertyString('HouseName'),
-                'consumption' => $this->SafeGetValue($houseConsID),
-                'cost' => $this->SafeGetValue($houseCostID),
+                'consumption' => $houseCons,
+                'cost' => $houseCost,
             ],
             'consumers' => []
         ];
 
         $consumers = json_decode($this->ReadPropertyString('Consumers'), true);
         if (is_array($consumers)) {
+            $sumCons = 0.0;
+            $sumCost = 0.0;
+            
             foreach ($consumers as $index => $c) {
                 $cID = (int)($c['ConsumptionID'] ?? 0);
                 $costID = (int)($c['CostID'] ?? 0);
                 $type = (int)($c['Type'] ?? 0);
+                
+                $consVal = $this->SafeGetValue($cID);
+                $costVal = $this->SafeGetValue($costID);
+
+                // Verbraucher addieren, Erzeuger abziehen (für die Summe)
+                if ($type === 0) {
+                    $sumCons += $consVal;
+                    $sumCost += $costVal;
+                } else {
+                    $sumCons -= $consVal;
+                    $sumCost -= $costVal;
+                }
 
                 $data['consumers'][] = [
                     'id' => $index,
                     'name' => $c['Name'] ?? 'Unbekannt',
                     'type' => $type, // 0 = Verbraucher, 1 = Erzeuger
-                    'consumption' => $this->SafeGetValue($cID),
-                    'cost' => $this->SafeGetValue($costID),
+                    'consumption' => $consVal,
+                    'cost' => $costVal,
                 ];
+            }
+            
+            // Fallback: Wenn keine Haus-Variablen konfiguriert sind, nimm die Summe!
+            if ($houseConsID == 0) {
+                $data['house']['consumption'] = max(0.0, $sumCons);
+            }
+            if ($houseCostID == 0) {
+                $data['house']['cost'] = max(0.0, $sumCost);
             }
         }
 
