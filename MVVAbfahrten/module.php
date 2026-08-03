@@ -51,6 +51,7 @@ class MVVAbfahrten extends IPSModuleStrict
     {
         //Never delete this line!
         parent::ApplyChanges();
+        $this->DA_ApplyPresentation();
 
         $stationID = $this->ReadPropertyString('StationID');
         if (trim($stationID) === '') {

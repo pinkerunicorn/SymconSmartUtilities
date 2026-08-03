@@ -23,7 +23,7 @@ class AWMMuenchen extends IPSModuleStrict
 
         // Heutige Abholungen
         $this->RegisterVariableBoolean('RestmuellHeute', 'Restmülltonne (Heute)', [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Trash',
             'COLOR' => -1,
             'CONTENT_COLOR' => -1,
@@ -40,7 +40,7 @@ class AWMMuenchen extends IPSModuleStrict
             ])
         ], 10);
         $this->RegisterVariableBoolean('PapierHeute', 'Papiertonne (Heute)', [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Trash',
             'COLOR' => -1,
             'CONTENT_COLOR' => -1,
@@ -57,7 +57,7 @@ class AWMMuenchen extends IPSModuleStrict
             ])
         ], 20);
         $this->RegisterVariableBoolean('BioHeute', 'Biotonne (Heute)', [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Trash',
             'COLOR' => -1,
             'CONTENT_COLOR' => -1,
@@ -89,6 +89,7 @@ class AWMMuenchen extends IPSModuleStrict
 
     public function ApplyChanges(): void{
         parent::ApplyChanges();
+        $this->DA_ApplyPresentation();
 
         $url = $this->ReadPropertyString('CalendarUrl');
         if (empty($url)) {

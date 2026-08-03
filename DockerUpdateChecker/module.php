@@ -40,7 +40,7 @@ class DockerUpdateChecker extends IPSModuleStrict
         ], 3);
         
         $this->RegisterVariableBoolean('UpdateAvailable', 'Update verfügbar?', [
-            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Warning',
             'COLOR' => -1,
             'CONTENT_COLOR' => -1,
@@ -70,6 +70,7 @@ class DockerUpdateChecker extends IPSModuleStrict
     {
         //Never delete this line!
         parent::ApplyChanges();
+        $this->DA_ApplyPresentation();
 
         $this->SetTimerInterval('UpdateTimer', $this->ReadPropertyInteger('UpdateInterval') * 1000);
 
