@@ -23,16 +23,55 @@ class AWMMuenchen extends IPSModuleStrict
 
         // Heutige Abholungen
         $this->RegisterVariableBoolean('RestmuellHeute', 'Restmülltonne (Heute)', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Trash'
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON' => 'Trash',
+            'COLOR' => -1,
+            'CONTENT_COLOR' => -1,
+            'DISPLAY_TYPE' => 0,
+            'PREVIEW_STYLE' => 1,
+            'SHOW_PREVIEW' => true,
+            'OPTIONS' => json_encode([
+                ['Value' => false, 'Caption' => 'Nein', 'IconValue' => 'Trash', 'IconActive' => true,
+                 'ColorActive' => false, 'ColorDisplay' => -1, 'ContentColorActive' => false,
+                 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => -1],
+                ['Value' => true, 'Caption' => 'Heute!', 'IconValue' => 'Trash', 'IconActive' => true,
+                 'ColorActive' => true, 'ColorDisplay' => 0xFFCC00, 'ContentColorActive' => false,
+                 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFFCC00]
+            ])
         ], 10);
         $this->RegisterVariableBoolean('PapierHeute', 'Papiertonne (Heute)', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Trash'
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON' => 'Trash',
+            'COLOR' => -1,
+            'CONTENT_COLOR' => -1,
+            'DISPLAY_TYPE' => 0,
+            'PREVIEW_STYLE' => 1,
+            'SHOW_PREVIEW' => true,
+            'OPTIONS' => json_encode([
+                ['Value' => false, 'Caption' => 'Nein', 'IconValue' => 'Trash', 'IconActive' => true,
+                 'ColorActive' => false, 'ColorDisplay' => -1, 'ContentColorActive' => false,
+                 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => -1],
+                ['Value' => true, 'Caption' => 'Heute!', 'IconValue' => 'Trash', 'IconActive' => true,
+                 'ColorActive' => true, 'ColorDisplay' => 0xFFCC00, 'ContentColorActive' => false,
+                 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFFCC00]
+            ])
         ], 20);
         $this->RegisterVariableBoolean('BioHeute', 'Biotonne (Heute)', [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON' => 'Trash'
+            'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
+            'ICON' => 'Trash',
+            'COLOR' => -1,
+            'CONTENT_COLOR' => -1,
+            'DISPLAY_TYPE' => 0,
+            'PREVIEW_STYLE' => 1,
+            'SHOW_PREVIEW' => true,
+            'OPTIONS' => json_encode([
+                ['Value' => false, 'Caption' => 'Nein', 'IconValue' => 'Trash', 'IconActive' => true,
+                 'ColorActive' => false, 'ColorDisplay' => -1, 'ContentColorActive' => false,
+                 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => -1],
+                ['Value' => true, 'Caption' => 'Heute!', 'IconValue' => 'Trash', 'IconActive' => true,
+                 'ColorActive' => true, 'ColorDisplay' => 0xFFCC00, 'ContentColorActive' => false,
+                 'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFFCC00]
+            ])
         ], 30);
 
         // Heute: Einzelne String-Variable als Zusammenfassung
@@ -58,33 +97,12 @@ class AWMMuenchen extends IPSModuleStrict
         }
         $this->SetStatus(102);
 
-        $this->DA_ApplyPresentation();
-
         // Clear custom presentations on string variables so IPS_SetIcon works
         // Wait, IPS_SetVariableCustomPresentation([]) didn't clear the Anzeigetyp.
         // We will just manage the CustomPresentation dynamically in UpdateCalendar!
         // No need to clear them here anymore.
 
-        $wasteOptions = json_encode([
-            ['Value' => false, 'Caption' => 'Nein', 'IconValue' => 'Trash', 'IconActive' => true,
-             'ColorActive' => false, 'ColorDisplay' => -1, 'ContentColorActive' => false,
-             'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => -1],
-            ['Value' => true, 'Caption' => 'Heute!', 'IconValue' => 'Trash', 'IconActive' => true,
-             'ColorActive' => true, 'ColorDisplay' => 0xFFCC00, 'ContentColorActive' => false,
-             'ContentColorDisplay' => -1, 'ContentColorValue' => -1, 'ColorValue' => 0xFFCC00]
-        ]);
-        foreach (['RestmuellHeute', 'PapierHeute', 'BioHeute'] as $ident) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent($ident), [
-                'PRESENTATION' => '{3319437D-7CDE-699D-750A-3C6A3841FA75}',
-                'ICON' => 'Trash',
-                'COLOR' => -1,
-                'CONTENT_COLOR' => -1,
-                'DISPLAY_TYPE' => 0,
-                'PREVIEW_STYLE' => 1,
-                'SHOW_PREVIEW' => true,
-                'OPTIONS' => $wasteOptions
-            ]);
-        }
+
 
         $interval = $this->ReadPropertyInteger('UpdateInterval');
         if ($interval > 0) {

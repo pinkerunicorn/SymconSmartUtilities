@@ -59,8 +59,6 @@ class MVVAbfahrten extends IPSModuleStrict
         }
         $this->SetStatus(102);
 
-        $this->DA_ApplyPresentation();
-
         $this->SetTimerInterval('UpdateTimer', $this->ReadPropertyInteger('UpdateInterval') * 1000);
 
         $this->Update();
